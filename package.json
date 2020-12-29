@@ -1,0 +1,44 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "ejs": "^3.1.5",
+    "errorhandler": "^1.5.1",
+    "express": "^4.17.1",
+    "express-error-handler": "^1.1.0",
+    "express-session": "^1.17.1",
+    "fomantic-ui": "^2.8.7",
+    "http": "0.0.1-security",
+    "jquery": "^3.5.1",
+    "mongodb": "^3.6.3",
+    "mongoose": "^5.10.15",
+    "multer": "^1.4.2",
+    "mysql": "^2.18.1",
+    "passport": "^0.4.1",
+    "passport-facebook": "^3.0.0",
+    "passport-local": "^1.0.0",
+    "path": "^0.12.7",
+    "redis-server": "^1.2.2",
+    "serve-static": "^1.14.1",
+    "socket.io": "^3.0.4",
+    "socket.io-client": "^3.0.4",
+    "socket.io-redis": "^6.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "resolutions": {
+    "graceful-fs": "4.2.3"
+  },
+  "author": "",
+  "license": "ISC"
+}

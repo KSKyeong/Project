@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+	<!-- 회원정보 수정 시 클라에게 보여주는 창, 입력값들을 받아서 
+post 방식으로 '/process/change' 패스로 요청할거임.-->
+	<head>
+		<meta charset="UTF-8">
+		<title>변경할 내용을 입력해주세요</title>
+	</head>
+<body>
+	<h1>정보 수정란</h1>
+	<br>
+		<form method="post" action="/process/tochange">
+			<table>
+				<tr>
+					<td><label>아이디 확인</label></td>
+					<td><input type="text" name="id"></td>
+				</tr>
+				<tr>
+					<td><label>비밀번호 확인</label></td>
+					<td><input type="password" name="password"></td>
+				</tr>
+				<tr>
+					<td><label>수정할 사용자명</label></td>
+					<td><input type="text" name="name"></td>
+				</tr>
+				<tr>
+					<td><label>수정할 나이</label></td>
+					<td><input type="text" name="age"></td>
+				</tr>
+			</table>
+		<input type="submit" value="수정하기" name="">
+		</form>
+	</body>
+</html>
