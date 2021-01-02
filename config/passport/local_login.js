@@ -8,6 +8,11 @@ module.exports = new LocalStrategy({
     console.log('passport의 local-login이 호출됨. : ' + email + ' ,' + password);
     
     var database = req.app.get('db');
+    
+    /*console.log(email + ', ' + password);
+    if(!email || !password) {
+        return done(null, false, req.flash('loginMessage', '아이디나 패스워드를 정확히 입력해주세요'));
+    }*/
     database.UserModel.findOne({'email' : email}, function(err, user) {
         if(err) {
             return done(err);
@@ -19,7 +24,7 @@ module.exports = new LocalStrategy({
         }
         
         if (user.provider != 'local') {
-            console.log('같은 email로 만들어진 계정이 존재함');
+            console.log('같은 email로 만들어진 다른 계정이 존재함');
             return done(null, false, req.flash('loginMessage', '같은 email로 만들어진 계정이 존재함'));
         }
         

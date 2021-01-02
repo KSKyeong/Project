@@ -14,6 +14,10 @@ module.exports = new LocalStrategy({
         var database = req.app.get('db');
         database.UserModel.findOne({'email' : email}, function(err, user) {
         if(err) {
+            return done(err);
+        }
+        // 회원가입 시 입력 받은 email이 기존 계정과 같은 email 이면 알림을 보낸다.
+        if(user) {
             console.log('기존 계정이 있음');
             return done(null, false, req.flash('signupMessage', '계정이 이미 있습니다.'));
         } else {

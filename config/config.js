@@ -2,7 +2,7 @@ module.exports = {
 	server_port : 3701,
 	db_url : 'mongodb://localhost:27017/local',
 	db_schemas : [
-		{file: './user_schema_mongo', collection: 'pass_facebook', schemaName: 'UserSchema', modelName: 'UserModel'}
+		{file: './user_schema_mongo', collection: 'Users', schemaName: 'UserSchema', modelName: 'UserModel'}
 	],
 	route_info : [
 		

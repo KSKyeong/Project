@@ -8,8 +8,8 @@ Schema.createSchema = function (mongoose) {
 	
     //스키마 정의 -facebook 버전으로 업데이트 함
 	var UserSchema = mongoose.Schema({
-        email: {type:String, 'default':' '}
-        ,hashed_password : {type:String, 'default':' '}
+        email: {type:String, 'default':' ', required:true, unique : true}
+        ,hashed_password : {type:String, 'default':' ', required:true}
         ,name: {type:String, index:'hashed', 'default':' '}
         ,salt : {type : String}
         ,created_at: {type:Date, index:{unique:false}, 'default':Date.now}
@@ -81,7 +81,7 @@ Schema.createSchema = function (mongoose) {
 
     })
     
-   /* // 입력된 칼럼 값이 있는지 확인
+    // 입력된 칼럼 값이 있는지 확인
 	UserSchema.path('email').validate(function (email) {
 		return email.length;
 	}, 'email 칼럼의 값이 없습니다.');
@@ -89,7 +89,7 @@ Schema.createSchema = function (mongoose) {
 	UserSchema.path('hashed_password').validate(function (hashed_password) {
 		return hashed_password.length;
 	}, 'hashed_password 칼럼의 값이 없습니다.');
-*/
+
 
 	// 스키마 static 메소드 정의
 	UserSchema.static('findByEmail', function(email, callback) {

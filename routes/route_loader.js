@@ -1,3 +1,4 @@
+// 다양한 사용자 요청 처리 함수들을 처음에 init 해서 router 객체에 저장해준다
 var route_loader = {}; 
 
 var config = require('../config/config');
