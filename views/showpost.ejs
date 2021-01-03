@@ -70,6 +70,7 @@
 				$("#contentsOutput").html(output);
 				 
 			});
+            
 		</script>
 		
 	</head>
@@ -79,16 +80,27 @@
 			<br>
 
 			<div class="ui raised segment">
-				<a class="ui blue ribbon label">게시판</a>
+				<a class="ui blue ribbon label" href='/process/listpost?page=0&perPage=2'>게시판</a>
       			<span id="board_title"><%= title %></span>
 			
 				
 				<div class="ui blue fluid card">
 					 <div class="content">
-						<% 
-						   var curTitle = posts._doc.title;
-						   var curContents = posts._doc.contents;
-						   var curWriter = posts._doc.writer.email; 
+						<%   
+                            // 글 제목
+				            var curTitle = posts._doc.title;
+                            // 글 내용
+				            var curContents = posts._doc.contents;
+                            // 글 작성자의 이메일(아이디) -> users 컬렉션 참조
+				            var curWriter = posts._doc.writer.email; 
+                            // 현재 댓글 작성하는 작성자의 _id
+                            var user_id = user_id;
+                            // 댓글이 달릴 현재 글의 _id
+                            var content_id = posts._doc._id;
+                            // 글 생성 날짜
+                            var created = posts._doc.created_at;
+                            console.log(posts._doc.comments);
+                            var comments = posts._doc.comments;
 						  
 //						   // html-entities module is required in post.js
 //						   var entities = new Entities();
@@ -100,7 +112,7 @@
 						
 						<div id="titleOutput" class="header"><%=curTitle %></div>
 	   					<div class="meta">
-	     						<span class="right floated time">1일전</span>
+	     						<span class="right floated time"><%= created %></span>
 	     						<span class="category">일반</span>
 	   					</div>
 	   					<div id="contentsOutput" class="description">
@@ -114,6 +126,62 @@
 	  				</div>
 					
 				</div>
+                
+                <div>
+                    <hr>
+                    <p>댓글 </p>
+                    <div class="ui blue fluid card">
+                         <div class="content">
+
+                            <form class="content ui form" method="post" action="/process/addcomments">
+
+                                <div class="two fields">
+                                    <div class="field">
+                                        <input type="text" name="comments" placeholder="댓글 달기">
+                                        <input type="hidden" name="com_writerID" value="<%= user_id %>">
+                                        <input type="hidden" name="content_id" value="<%= content_id %>">
+                                    </div>
+                                    <div class="field"><button class="ui primary basic button" id="pushComment" >댓글 입력</button></div>
+                                    <div class="field"></div>
+                                </div>
+
+                             </form>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <%  // 각 글별 댓글의 정보 출력 -> 닉네임에 profile.ejs 연결 가능하게 태그 걸기
+                    if(comments.length>0){ %>
+                    <div class="ui comments">
+                    <h3 class="ui dividing header">댓글</h3>
+                <%        comments.forEach(function(comment) { %>
+    
+                        <div class="comment">
+                            <a class="avatar">
+                                <img src="/images/avatar/small/matt.jpg">
+                            </a>
+                            <div class="content">
+                                <a class="author"><%= comment.writer.name %></a>
+                                <div class="metadata">
+                                <span class="date"><%= comment.created_at %></span>
+                              </div>
+                              <div class="text">
+                                <%= comment.contents %>
+                              </div>
+                              <div class="actions">
+                                <a class="reply">Reply</a>
+                              </div>
+                            </div>
+                        </div>
+                
+
+                    <% }) %>
+                    </div>
+                        
+               <% } %>
+                <div>
+                    
+                </div>
 				
 				<br><br><a class="ui button" href='/process/listpost?page=0&perPage=2'>글 목록</a>
 				

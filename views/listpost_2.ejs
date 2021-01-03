@@ -87,30 +87,40 @@
                             var noStart = (pageCount - page) * perPage;
 							
 							    for (var i = 0; i < posts.length; i++) {
-								    var curTitle = posts[i]._doc.title;
-								    var curContents = posts[i]._doc.contents;
-								    var curWriter = posts[i]._doc.writer.email;
-                                    var views = posts[i]._doc.views;
-                                    var created = posts[i]._doc.created_at;
-								    var curNo = noStart - i - 1;
+								   var curTitle = posts[i]._doc.title;
+								   var curContents = posts[i]._doc.contents;
+								   var curWriter = posts[i]._doc.writer.email;
+                                   var views = posts[i]._doc.views;
+								   var curNo = noStart - i - 1;
 								   %>
                         <div class="item">
-                            <div class="ui relaxed grid">
-                                
-                                <div class="sixteen wide column" onclick="javascript:window.location='/process/showpost/<%=posts[i]._id %>'">
+                            <div class="ui grid">
+                                <div class="two wide column"><%=curNo %></div>
+                                <div class="fourteen wide column" onclick="javascript:window.location='/process/showpost/<%=posts[i]._id %>'">
                                     
-                                    <div class="column">
-                                        <div class="ui two column grid">
-                                            <div class="two wide column"><%=curNo %></div>
-                                            <div class="eigth wide column"><%=curTitle %></div>
-                                            <div class="two wide column"><%=curWriter %></div>
-                                            <div class="two wide column"><%=created %></div>
-                                            <div class="two wide column"><%= views %></div>
+                                        <div class="eight wide column">
+                                            <h4 class="ui left aligned header">
+                                            <%=curTitle %>
+                                            </h4>
                                         </div>
-                                      </div>
+                                        <div class="two wide column">
+                                            <h4 class="ui left aligned header">
+                                            <%=curWriter %>
+                                            </h4>
+                                        </div>
+                                        <div class="two wide column">
+                                            <h4 class="ui left aligned header">
+                                            2015-06-01
+                                            </h4>
+                                        </div>
+                                        <div class="two wide column">
+                                            <h4 class="ui left aligned header">
+                                            <%= views %>
+                                            </h4>
+                                        </div>
+                                          
                                     
                                 </div>
-                                
                             </div>
                         </div>
                         <% } %>
@@ -126,7 +136,7 @@
                             <i class="backward icon"></i>
                         </div>
                         <div class="ui icon button" onclick="listpost(<%=(page-1) %>, <%=perPage %>)">
-                            <i class="chevron left icon"></i>
+                            <i class="left chevron icon"></i>
                         </div>
                         <%
 					 			} else {
@@ -135,7 +145,7 @@
                             <i class="backward icon"></i>
                         </div>
                         <div class="ui disabled icon button">
-                            <i class="chevron left icon"></i>
+                            <i class="left chevron icon"></i>
                         </div>
                         <%
 					 			}

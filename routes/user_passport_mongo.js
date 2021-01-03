@@ -3,20 +3,21 @@ module.exports = function(router, passport) {
     
     // 홈화면
     router.route('/').get(function(req, res) {
-    console.log('/ 패스 요청됨.');
-    res.render('index.ejs');
+        console.log('/ 패스 요청됨.');
+        res.render('index.ejs');
     });
     
     //로그인 화면
     router.route('/login').get(function(req, res) {
-    console.log('/login 패스 요청됨');
-    res.render('login.ejs', {message : req.flash('loginMessage')});
+        console.log('/login 패스 요청됨');
+        req.logout();
+        res.render('login.ejs', {message : req.flash('loginMessage')});
     });
     
     // 회원가입 화면
     router.route('/signup').get(function(req, res) {
-    console.log('/signup 패스 요청됨');
-    res.render('signup.ejs', {message : req.flash('signupMessage')});
+        console.log('/signup 패스 요청됨');
+        res.render('signup.ejs', {message : req.flash('signupMessage')});
     });
     
     // 프로필 화면

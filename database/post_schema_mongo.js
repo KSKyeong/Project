@@ -20,6 +20,7 @@ SchemaObj.createSchema = function(mongoose) {
         views: {type: Number, default : 0}
 	});
 	
+    
 	// 필수 속성에 대한 'required' validation
 	PostSchema.path('title').required(true, '글 제목을 입력하셔야 합니다.');
 	PostSchema.path('contents').required(true, '글 내용을 입력하셔야 합니다.');
@@ -76,6 +77,12 @@ SchemaObj.createSchema = function(mongoose) {
 		},
         viewupdate: function(id, callback) {
             this.updateOne({_id : id}, {$inc: {views : 1}})
+                .exec(callback);
+        },
+        commentsupdate: function(id, comment, writer, callback) {
+            this.updateOne({_id: id}, {$push: {comments : 
+                { contents: comment, writer: writer }
+            }})
                 .exec(callback);
         }
 	}

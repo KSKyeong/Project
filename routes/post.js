@@ -2,6 +2,46 @@
 //var Entities = require('html-entities').AllHtmlEntities;
 var Entities = require('html-entities');
 
+var addcomments = function(req, res) {
+    console.log('post 모듈 안에 있는 addcomments 호출됨.');
+    
+    // 댓글 내용
+    var comment = req.body.comments || req.query.comments;
+    // 댓글 작성자의 Obj_id
+    var com_writerID = req.body.com_writerID || req.query.com_writerID;
+    // 댓글 달릴 글의 Obj_id
+    var content_id = req.body.content_id || req.query.content_id; 
+    
+    console.log('요청 파라미터 : ' + comment + ', 작성자:' + com_writerID + ', 댓글 달릴 글:' + 
+               content_id);
+    
+    var database = req.app.get('db');
+    if(database.db) {
+        database.PostModel.commentsupdate(content_id, comment, com_writerID, function(err, results) {
+            if (err) {
+                console.error('댓글 추가 중 에러 발생 : ' + err.stack);
+                
+                res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+				res.write('<h2>댓글 추가 중 에러 발생</h2>');
+                res.write('<p>' + err.stack + '</p>');
+				res.end();
+                
+                return;
+            }
+            if (results.length>0) {
+                console.log('뭔가 변함');
+                return;
+            }
+            console.log('아무것도 실행 안됨?');
+            return res.redirect('/process/showpost/' + content_id);
+        });
+    } else {
+		res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+		res.write('<h2>데이터베이스 연결 실패</h2>');
+		res.end();
+	}
+    
+}
 
 var addpost = function(req, res) {
 	console.log('post 모듈 안에 있는 addpost 호출됨.');
@@ -180,7 +220,7 @@ var showpost = function(req, res) {
             if(err) {throw err;}
             
             if(goal) {
-                console.log('뭐지???????');
+                console.log('게시물 ' + paramId + '--> 조회수 1만큼 증가');
                 return
             }
             console.log('아무런 변화 없음');
@@ -204,14 +244,21 @@ var showpost = function(req, res) {
                 
                 /*results.updateOne({_id : paramId}, {$inc: {views : parseInt(1)}});
                 results.save();*/
-  
+                
+                // 댓글을 작성한다면 현재 사용자의 정보를 함께 넣어준다.(세션 활용)
+                // req.user._id 없다면, req.user.email이나 name을 활용, addcomments 함수 내에 user._id 추출하는 과정 필요
+                console.log(req.isAuthenticated());
+                var user_Obj_id = req.user._id;
 				res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
 				
 				// 뷰 템플레이트를 이용하여 렌더링한 후 전송
 				var context = {
 					title: '글 조회 ',
 					posts: results,
-					Entities: Entities
+					Entities: Entities,
+                    user_id : user_Obj_id
+                    
+                    
 				};
 				
 				req.app.render('showpost', context, function(err, html) {
@@ -246,3 +293,4 @@ var showpost = function(req, res) {
 module.exports.listpost = listpost;
 module.exports.addpost = addpost;
 module.exports.showpost = showpost;
+module.exports.addcomments = addcomments;
