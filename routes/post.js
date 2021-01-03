@@ -111,10 +111,10 @@ var listpost = function(req, res) {
             }
 			
 			if (results) {
-				console.dir(results);
+//				console.dir(results);
  
 				// 전체 문서 객체 수 확인
-				database.PostModel.count().exec(function(err, count) {
+				database.PostModel.countDocuments().exec(function(err, count) {
 
 					res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
 					
@@ -174,6 +174,18 @@ var showpost = function(req, res) {
 	
     // 데이터베이스 객체가 초기화된 경우
 	if (database.db) {
+        // 조회수 업데이트
+        database.PostModel.viewupdate(paramId, function(err, goal) {
+            console.log('조회수 증가 함수 호출' + goal);
+            if(err) {throw err;}
+            
+            if(goal) {
+                console.log('뭐지???????');
+                return
+            }
+            console.log('아무런 변화 없음');
+            return
+        });
 		// 1. 글 리스트
 		database.PostModel.load(paramId, function(err, results) {
 			if (err) {
@@ -188,7 +200,10 @@ var showpost = function(req, res) {
             }
 			
 			if (results) {
-				console.dir(results);
+//				console.dir(results.views);
+                
+                /*results.updateOne({_id : paramId}, {$inc: {views : parseInt(1)}});
+                results.save();*/
   
 				res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
 				
@@ -210,7 +225,7 @@ var showpost = function(req, res) {
                         return;
                     }
 					
-					console.log('응답 웹문서 : ' + html);
+//					console.log('응답 웹문서 : ' + html);
 					res.end(html);
 				});
 			 

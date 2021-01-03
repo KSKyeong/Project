@@ -7,16 +7,17 @@ SchemaObj.createSchema = function(mongoose) {
 	// 글 스키마 정의
 	var PostSchema = mongoose.Schema({
 	    title: {type: String, trim: true, 'default':''},		// 글 제목
-	    contents: {type: String, trim:true, 'default':''},						// 글 내용
-	    writer: {type: mongoose.Schema.ObjectId, ref: 'users'},							// 글쓴 사람
+	    contents: {type: String, trim:true, 'default':''},		// 글 내용
+	    writer: {type: mongoose.Schema.ObjectId, ref: 'users'},	// 글쓴 사람
 	    comments: [{		// 댓글
-	    	contents: {type: String, trim:true, 'default': ''},					// 댓글 내용
+	    	contents: {type: String, trim:true, 'default': ''}, // 댓글 내용
 	    	writer: {type: mongoose.Schema.ObjectId, ref: 'users'},
 	    	created_at: {type: Date, 'default': Date.now}
 	    }],
 	    tags: {type: [], 'default': ''},
 	    created_at: {type: Date, index: {unique: false}, 'default': Date.now},
-	    updated_at: {type: Date, index: {unique: false}, 'default': Date.now}
+	    updated_at: {type: Date, index: {unique: false}, 'default': Date.now},
+        views: {type: Number, default : 0}
 	});
 	
 	// 필수 속성에 대한 'required' validation
@@ -57,6 +58,7 @@ SchemaObj.createSchema = function(mongoose) {
 	PostSchema.statics = {
 		// ID로 글 찾기
 		load: function(id, callback) {
+//            this.update({_id : id}, {$inc: {views : 1}});
 			this.findOne({_id: id})
 				.populate('writer', 'name provider email')
 				.populate('comments.writer')
@@ -71,7 +73,11 @@ SchemaObj.createSchema = function(mongoose) {
 				.limit(Number(options.perPage))
 				.skip(options.perPage * options.page)
 				.exec(callback);
-		}
+		},
+        viewupdate: function(id, callback) {
+            this.updateOne({_id : id}, {$inc: {views : 1}})
+                .exec(callback);
+        }
 	}
 	
 	console.log('PostSchema 정의함.');

@@ -83,13 +83,15 @@
                     </div>
 
                     <div class="ui very relaxed selection celled list">
-                        <%  var noStart = (pageCount - page) * perPage;
+                        <%  /*var noStart = (pageCount - page) * perPage;*/
+                            var noStart = (pageCount - page) * perPage;
 							
 							    for (var i = 0; i < posts.length; i++) {
 								   var curTitle = posts[i]._doc.title;
 								   var curContents = posts[i]._doc.contents;
 								   var curWriter = posts[i]._doc.writer.email;
-								   var curNo = noStart - i;
+                                   var views = posts[i]._doc.views;
+								   var curNo = noStart - i - 1;
 								   %>
                         <div class="item">
                             <div class="ui grid">
@@ -102,7 +104,7 @@
                                         <h5 class="ui right aligned orange header">
                                             <%=curWriter %>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                             2015-06-01&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                            12
+                                            <%= views %>
                                         </h5>
                                     </div>
                                 </div>

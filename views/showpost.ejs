@@ -80,7 +80,7 @@
 
 			<div class="ui raised segment">
 				<a class="ui blue ribbon label">게시판</a>
-      			<span id="board_title"><%=title %></span>
+      			<span id="board_title"><%= title %></span>
 			
 				
 				<div class="ui blue fluid card">
@@ -94,8 +94,8 @@
 //						   var entities = new Entities();
 //						   
 //						   var decodedContents = entities.decode(curContents);
-                           var decodedContents = Entities.decode(curContents);
-                            var decodedContents = curContents;
+                          /* var decodedContents = Entities.decode(curContents);
+                            var decodedContents = curContents;*/
 						%>
 						
 						<div id="titleOutput" class="header"><%=curTitle %></div>
