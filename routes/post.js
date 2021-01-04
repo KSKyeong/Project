@@ -58,12 +58,13 @@ var deletecomments = function(req, res) {
     
     var database = req.app.get('db');
     if(database.db) {
+        // 
         database.PostModel.commentsdelete(comment_id, post_id, function(err, results) {
             if (err) {
-                console.error('댓글 추가 중 에러 발생 : ' + err.stack);
+                console.error('댓글 삭제 중 에러 발생 : ' + err.stack);
                 
                 res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-				res.write('<h2>댓글 추가 중 에러 발생</h2>');
+				res.write('<h2>댓글 삭제 중 에러 발생</h2>');
                 res.write('<p>' + err.stack + '</p>');
 				res.end();
                 
@@ -71,15 +72,33 @@ var deletecomments = function(req, res) {
             }
             if (results) {
                 console.log(results);
-                console.log('댓글 등록 완료 ');
+                console.log('댓글 삭제 완료 ');
                 return res.redirect('/process/showpost/' + post_id);
             }
-            console.log('댓글 등록 실패?');
+            console.log('댓글 삭제 실패?');
             res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-            res.write('<h2>댓글 추가 중 무시 현상 발생</h2>');
+            res.write('<h2>댓글 추가 중 삭제 현상 발생</h2>');
             res.end();
             return ;
         });
+        /*var index = -1;
+        database.PostModel.load(post_id, function(err, results) {
+            console.log(results);
+            var array = results.comments;
+            for(var i = 0; i < array.length; i++) {
+                if(array[i]._id === comment_id) {
+                    index = i;
+                }
+            }
+            
+        });
+        
+        if(index != -1) {
+            database.PostModel.commentsdelete(post_id, index, function(err, result) {
+                
+            })
+        }*/
+     
     } else {
 		res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
 		res.write('<h2>데이터베이스 연결 실패</h2>');
@@ -293,7 +312,7 @@ var showpost = function(req, res) {
 
                     // 댓글을 작성한다면 현재 사용자의 정보를 함께 넣어준다.(세션 활용)
                     // req.user._id 없다면, req.user.email이나 name을 활용, addcomments 함수 내에 user._id 추출하는 과정 필요
-                    console.log(req.user);
+//                    console.log(req.user);
                     var user = req.user;
                     res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
 

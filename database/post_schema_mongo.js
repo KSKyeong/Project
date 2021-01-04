@@ -85,14 +85,17 @@ SchemaObj.createSchema = function(mongoose) {
             }})
                 .exec(callback);
         },
-        
         // 수정 필요, 인스턴스 객체로 먼저 해보자
-        commentsdelete: function(post_id, comment_id, callback) {
-            this.updateOne({_id: post_id}, {$pull: {comments : 
-                {_id:comment_id }
-            }})
+        commentsdelete: function(comment_id, post_id, callback) {
+            this.updateOne(
+              { _id: post_id },
+              { $pull: { 'comments': { _id: comment_id } } }
+            )
                 .exec(callback);
         }
+        /*commentsdelete: function(post_id, index, callback) {
+            var index = utils.indexOf()
+        }*/
 	}
 	
 	console.log('PostSchema 정의함.');
