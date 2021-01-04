@@ -94,12 +94,12 @@
                             // 글 작성자의 이메일(아이디) -> users 컬렉션 참조
 				            var curWriter = posts._doc.writer.email; 
                             // 현재 댓글 작성하는 작성자의 _id
-                            var user_id = user_id;
-                            // 댓글이 달릴 현재 글의 _id
+                            var user_id = user_info._id;
+                         
+                            // 댓글이 달릴 현재 글의 _id -> 삭제 시 필요
                             var content_id = posts._doc._id;
                             // 글 생성 날짜
                             var created = posts._doc.created_at;
-                            console.log(posts._doc.comments);
                             var comments = posts._doc.comments;
 						  
 //						   // html-entities module is required in post.js
@@ -141,7 +141,7 @@
                                         <input type="hidden" name="com_writerID" value="<%= user_id %>">
                                         <input type="hidden" name="content_id" value="<%= content_id %>">
                                     </div>
-                                    <div class="field"><button class="ui primary basic button" id="pushComment" >댓글 입력</button></div>
+                                    <div class="field"><button type="submit" class="ui primary basic button" id="pushComment" >댓글 입력</button></div>
                                     <div class="field"></div>
                                 </div>
 
@@ -154,7 +154,8 @@
                     if(comments.length>0){ %>
                     <div class="ui comments">
                     <h3 class="ui dividing header">댓글</h3>
-                <%        comments.forEach(function(comment) { %>
+                <%      console.log(comments);
+                        comments.forEach(function(comment) { %>
     
                         <div class="comment">
                             <a class="avatar">
@@ -171,7 +172,18 @@
                               <div class="actions">
                                 <a class="reply">Reply</a>
                               </div>
+                                <% if(comment.writer._id == user_info._id) { %>
+                                <form method="post" action="/process/deletecomments">
+                                    <div>
+                                        <input type="hidden" name="del_comment" value="<%=comment._id%>">
+                                        <input type="hidden" name="del_post" value="<%=content_id%>">
+                                        <button type="submit" class="ui primary basic button" id="pushComment" >X</button>
+                                    </div>
+                                </form>
+                            
+                            <% } %>
                             </div>
+                            
                         </div>
                 
 

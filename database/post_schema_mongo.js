@@ -6,10 +6,10 @@ SchemaObj.createSchema = function(mongoose) {
 	
 	// 글 스키마 정의
 	var PostSchema = mongoose.Schema({
-	    title: {type: String, trim: true, 'default':''},		// 글 제목
-	    contents: {type: String, trim:true, 'default':''},		// 글 내용
-	    writer: {type: mongoose.Schema.ObjectId, ref: 'users'},	// 글쓴 사람
-	    comments: [{		// 댓글
+        title: {type: String, trim: true, 'default':''},		// 글 제목
+        contents: {type: String, trim:true, 'default':''},		// 글 내용
+        writer: {type: mongoose.Schema.ObjectId, ref: 'users'},	// 글쓴 사람
+        comments: [{		// 댓글
 	    	contents: {type: String, trim:true, 'default': ''}, // 댓글 내용
 	    	writer: {type: mongoose.Schema.ObjectId, ref: 'users'},
 	    	created_at: {type: Date, 'default': Date.now}
@@ -82,6 +82,14 @@ SchemaObj.createSchema = function(mongoose) {
         commentsupdate: function(id, comment, writer, callback) {
             this.updateOne({_id: id}, {$push: {comments : 
                 { contents: comment, writer: writer }
+            }})
+                .exec(callback);
+        },
+        
+        // 수정 필요, 인스턴스 객체로 먼저 해보자
+        commentsdelete: function(post_id, comment_id, callback) {
+            this.updateOne({_id: post_id}, {$pull: {comments : 
+                {_id:comment_id }
             }})
                 .exec(callback);
         }

@@ -28,12 +28,57 @@ var addcomments = function(req, res) {
                 
                 return;
             }
-            if (results.length>0) {
-                console.log('뭔가 변함');
+            if (results) {
+                console.log(results);
+                console.log('댓글 등록 완료 ');
+                return res.redirect('/process/showpost/' + content_id);
+            }
+            console.log('댓글 등록 실패?');
+            res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+            res.write('<h2>댓글 추가 중 무시 현상 발생</h2>');
+            res.end();
+            return ;
+        });
+    } else {
+		res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+		res.write('<h2>데이터베이스 연결 실패</h2>');
+		res.end();
+	}
+    
+}
+
+var deletecomments = function(req, res) {
+    console.log('post 모듈 안에 있는 deletecomments 호출됨.');
+    
+    // 삭제할 댓글의 ID
+    var comment_id = req.body.del_comment || req.query.del_comment;
+    // 삭제할 댓글이 달린 게시글의 ID
+    var post_id = req.body.del_post || req.query.del_post;
+    console.log(comment_id + ': 댓글의 고유 ID, ' + post_id + ': 게시물의 고유 ID');
+    
+    var database = req.app.get('db');
+    if(database.db) {
+        database.PostModel.commentsdelete(comment_id, post_id, function(err, results) {
+            if (err) {
+                console.error('댓글 추가 중 에러 발생 : ' + err.stack);
+                
+                res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+				res.write('<h2>댓글 추가 중 에러 발생</h2>');
+                res.write('<p>' + err.stack + '</p>');
+				res.end();
+                
                 return;
             }
-            console.log('아무것도 실행 안됨?');
-            return res.redirect('/process/showpost/' + content_id);
+            if (results) {
+                console.log(results);
+                console.log('댓글 등록 완료 ');
+                return res.redirect('/process/showpost/' + post_id);
+            }
+            console.log('댓글 등록 실패?');
+            res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+            res.write('<h2>댓글 추가 중 무시 현상 발생</h2>');
+            res.end();
+            return ;
         });
     } else {
 		res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
@@ -200,7 +245,6 @@ var listpost = function(req, res) {
 	
 };
 
-
 var showpost = function(req, res) {
 	console.log('post 모듈 안에 있는 showpost 호출됨.');
   
@@ -211,86 +255,91 @@ var showpost = function(req, res) {
     
     
 	var database = req.app.get('db');
-	
+    
+    // 사용자 인증된 상태일 때 조회 권한
+	if(req.isAuthenticated()){
     // 데이터베이스 객체가 초기화된 경우
-	if (database.db) {
-        // 조회수 업데이트
-        database.PostModel.viewupdate(paramId, function(err, goal) {
-            console.log('조회수 증가 함수 호출' + goal);
-            if(err) {throw err;}
-            
-            if(goal) {
-                console.log('게시물 ' + paramId + '--> 조회수 1만큼 증가');
-                return
-            }
-            console.log('아무런 변화 없음');
-            return
-        });
-		// 1. 글 리스트
-		database.PostModel.load(paramId, function(err, results) {
-			if (err) {
-                console.error('게시판 글 조회 중 에러 발생 : ' + err.stack);
-                
-                res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-				res.write('<h2>게시판 글 조회 중 에러 발생</h2>');
-                res.write('<p>' + err.stack + '</p>');
-				res.end();
-                
-                return;
-            }
-			
-			if (results) {
-//				console.dir(results.views);
-                
-                /*results.updateOne({_id : paramId}, {$inc: {views : parseInt(1)}});
-                results.save();*/
-                
-                // 댓글을 작성한다면 현재 사용자의 정보를 함께 넣어준다.(세션 활용)
-                // req.user._id 없다면, req.user.email이나 name을 활용, addcomments 함수 내에 user._id 추출하는 과정 필요
-                console.log(req.isAuthenticated());
-                var user_Obj_id = req.user._id;
-				res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-				
-				// 뷰 템플레이트를 이용하여 렌더링한 후 전송
-				var context = {
-					title: '글 조회 ',
-					posts: results,
-					Entities: Entities,
-                    user_id : user_Obj_id
-                    
-                    
-				};
-				
-				req.app.render('showpost', context, function(err, html) {
-					if (err) {
-                        console.error('응답 웹문서 생성 중 에러 발생 : ' + err.stack);
-                
-                        res.write('<h2>응답 웹문서 생성 중 에러 발생</h2>');
-                        res.write('<p>' + err.stack + '</p>');
-                        res.end();
+        if (database.db) {
+            // 조회수 업데이트
+            database.PostModel.viewupdate(paramId, function(err, goal) {
+                console.log('조회수 증가 함수 호출' + goal);
+                if(err) {throw err;}
 
-                        return;
-                    }
-					
-//					console.log('응답 웹문서 : ' + html);
-					res.end(html);
-				});
-			 
-			} else {
-				res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-				res.write('<h2>글 조회  실패</h2>');
-				res.end();
-			}
-		});
-	} else {
-		res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-		res.write('<h2>데이터베이스 연결 실패</h2>');
-		res.end();
-	}
-	
+                if(goal) {
+                    console.log('게시물 ' + paramId + '--> 조회수 1만큼 증가');
+                    return
+                }
+                console.log('아무런 변화 없음');
+                return
+            });
+            // 1. 글 리스트
+            database.PostModel.load(paramId, function(err, results) {
+                if (err) {
+                    console.error('게시판 글 조회 중 에러 발생 : ' + err.stack);
+
+                    res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+                    res.write('<h2>게시판 글 조회 중 에러 발생</h2>');
+                    res.write('<p>' + err.stack + '</p>');
+                    res.end();
+
+                    return;
+                }
+
+                if (results) {
+    //				console.dir(results.views);
+
+                    /*results.updateOne({_id : paramId}, {$inc: {views : parseInt(1)}});
+                    results.save();*/
+
+                    // 댓글을 작성한다면 현재 사용자의 정보를 함께 넣어준다.(세션 활용)
+                    // req.user._id 없다면, req.user.email이나 name을 활용, addcomments 함수 내에 user._id 추출하는 과정 필요
+                    console.log(req.user);
+                    var user = req.user;
+                    res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+
+                    // 뷰 템플레이트를 이용하여 렌더링한 후 전송
+                    var context = {
+                        title: '글 조회 ',
+                        posts: results,
+                        Entities: Entities,
+                        user_info : user
+
+
+                    };
+
+                    req.app.render('showpost', context, function(err, html) {
+                        if (err) {
+                            console.error('응답 웹문서 생성 중 에러 발생 : ' + err.stack);
+
+                            res.write('<h2>응답 웹문서 생성 중 에러 발생</h2>');
+                            res.write('<p>' + err.stack + '</p>');
+                            res.end();
+
+                            return;
+                        }
+
+    //					console.log('응답 웹문서 : ' + html);
+                        res.end(html);
+                    });
+
+                } else {
+                    res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+                    res.write('<h2>글 조회  실패</h2>');
+                    res.end();
+                }
+            });
+        } else {
+            res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
+            res.write('<h2>데이터베이스 연결 실패</h2>');
+            res.end();
+        }
+    } else {// 사용자 인증이 안 된 경우 (로그인으로 전송)
+        res.redirect('/login');
+    }
 };
 
 module.exports.listpost = listpost;
 module.exports.addpost = addpost;
 module.exports.showpost = showpost;
 module.exports.addcomments = addcomments;
+module.exports.deletecomments = deletecomments;

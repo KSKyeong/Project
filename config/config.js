@@ -11,6 +11,7 @@ module.exports = {
         ,{file : './post', path : '/process/listpost', method : 'listpost', type : 'post'}
         ,{file : './post', path : '/process/listpost', method : 'listpost', type : 'get'}
         ,{file : './post', path : '/process/addcomments', method : 'addcomments', type : 'post'}
+        ,{file : './post', path : '/process/deletecomments', method : 'deletecomments', type : 'post'}
 		
 	],
     facebook : {
