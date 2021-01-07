@@ -33,8 +33,16 @@ module.exports = function(app, passport) {
 
 				user.save(function (err) {
 					if (err){ console.log(err);}
-					return done(err, user);
+					var init_friends = new database.FriendModel({'user_id' : user._id});
+                    init_friends.save(function(err) {
+                        if(err) {throw err;}
+                        console.log('친구 관련 컬렉션도 추가함');
+                        return done(null, user);
+                    });
+
 				});
+                
+                
 			} else {
                 console.log('같은 유저 정보가 DB에 있다.');
 				return done(err, user);

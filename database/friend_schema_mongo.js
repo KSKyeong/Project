@@ -5,7 +5,7 @@ SchemaObj.createSchema = function(mongoose) {
 	
 	// 글 스키마 정의
 	var FriendSchema = mongoose.Schema({
-        user_id : {type: mongoose.Schema.ObjectId, ref: 'users'},		// 클라이언트의 Obj_id
+        user_id : {type: mongoose.Schema.ObjectId, ref: 'users', required: true}, // 클라이언트의 Obj_id
         friends : [{
             friends_id : {type: mongoose.Schema.ObjectId, ref: 'users'}, // 친구들의 Obj_id
             created_at: {type: Date, index: {unique: false}, 'default': Date.now},
@@ -23,7 +23,7 @@ SchemaObj.createSchema = function(mongoose) {
 	
 	// 스키마에 인스턴스 메소드 추가
 	FriendSchema.methods = {
-		savePost: function(callback) {		// 글 저장
+		initFriend: function(callback) {		// 사용자 가입 시, 친구 관련 틀? 을 만들어준다.
 			var self = this;
 			
 			this.validate(function(err) {

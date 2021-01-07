@@ -30,7 +30,7 @@
  - 댓글 삭제 기능 PostSchema에 삭제 관련 함수 잘 모르겠음. --> 댓글 삭제 기능 구현
  1/7
  - 게시글 및 댓글 추가 삭제 모두 완료
- 
+ - sign_up 시에, friend 컬렉션 자동 생성(local, facebook) -> user_id 속성값으로 _id 값을 넣어줌
 
  */
 

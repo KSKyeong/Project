@@ -25,7 +25,16 @@ module.exports = new LocalStrategy({
             user.save(function(err) {
                 if(err) {throw err;}
                 console.log('사용자 데이터 추가함');
-                return done(null, user);
+                // 친구 관련 컬렉션을 생성해보자
+                console.log(user);
+                var init_friends = new database.FriendModel({'user_id' : user._id});
+                init_friends.save(function(err) {
+                    if(err) {throw err;}
+                    console.log('친구 관련 컬렉션도 추가함');
+                    return done(null, user);
+                });
+                
+//                return done(null, user);
             });
         }
       });

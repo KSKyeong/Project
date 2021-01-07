@@ -4,6 +4,7 @@ module.exports = {
 	db_schemas : [
 		{file: './user_schema_mongo', collection: 'users', schemaName: 'UserSchema', modelName: 'UserModel'}
         ,{file: './post_schema_mongo', collection: 'post', schemaName: 'PostSchema', modelName: 'PostModel'}
+        ,{file: './friend_schema_mongo', collection: 'friend', schemaName: 'FriendSchema', modelName: 'FriendModel'}
 	],
 	route_info : [
         {file : './post', path : '/process/addpost', method : 'addpost', type : 'post'}
