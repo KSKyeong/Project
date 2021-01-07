@@ -92,8 +92,12 @@
                             // 글 내용
 				            var curContents = posts._doc.contents;
                             // 글 작성자의 이메일(아이디) -> users 컬렉션 참조
-				            var curWriter = posts._doc.writer.email; 
-                            // 현재 댓글 작성하는 작성자의 _id
+				            var curWriter = posts._doc.writer.name;
+                         
+                            // 글 작성자의 고유 아이디 Obj_id => 게시글 작성자의 삭제 권한 위해
+                            var curWriter_id = posts._doc.writer._id;
+                            
+                            // 현재 댓글 작성하는 작성자의 _id (현재 글에 접근하고 있는 클라이언트의 고유 ID)
                             var user_id = user_info._id;
                          
                             // 댓글이 달릴 현재 글의 _id -> 삭제 시 필요
@@ -124,6 +128,21 @@
 	      					<img class="ui avatar image" src="/public/author.png"> <%=curWriter %>
 	    				</div>
 	  				</div>
+                    
+                    <!--게시글 작성자의 화면에만 삭제 버튼 보여준다-->
+                    <% 
+                    console.log(user_id +', ' + curWriter_id);
+                    if(user_id == curWriter_id) { %>
+                    <div>
+                        <form method="post" action="/process/deletepost">
+                            <div class="ui left aligned segment">
+                                <input type="hidden" name="del_post" value="<%=content_id%>">
+                                <input type="hidden" name="post_writer" value="<%=curWriter_id%>"> 
+                                <button type="submit" class="ui secondary basic button" id="pushComment" >게시물 삭제</button>
+                            </div>
+                        </form>
+                    </div>
+                    <% } %>
 					
 				</div>
                 
@@ -177,7 +196,9 @@
                                     <div>
                                         <input type="hidden" name="del_comment" value="<%=comment._id%>">
                                         <input type="hidden" name="del_post" value="<%=content_id%>">
-                                        <button type="submit" class="ui primary basic button" id="pushComment" >X</button>
+                                        <div class="ui left floated green header">
+                                            <button type="submit" class="ui secondary basic button" id="pushComment" >댓글 삭제</button>
+                                        </div>
                                     </div>
                                 </form>
                             

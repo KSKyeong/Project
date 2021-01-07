@@ -1,32 +1,28 @@
-var utils = require('../utils/utils');
-
+// 친구
 var SchemaObj = {};
 
 SchemaObj.createSchema = function(mongoose) {
 	
 	// 글 스키마 정의
-	var PostSchema = mongoose.Schema({
-        title: {type: String, trim: true, 'default':''},		// 글 제목
-        contents: {type: String, trim:true, 'default':''},		// 글 내용
-        writer: {type: mongoose.Schema.ObjectId, ref: 'users'},	// 글쓴 사람
-        comments: [{		// 댓글
-	    	contents: {type: String, trim:true, 'default': ''}, // 댓글 내용
-	    	writer: {type: mongoose.Schema.ObjectId, ref: 'users'},
-	    	created_at: {type: Date, 'default': Date.now}
-	    }],
-	    tags: {type: [], 'default': ''},
-	    created_at: {type: Date, index: {unique: false}, 'default': Date.now},
-	    updated_at: {type: Date, index: {unique: false}, 'default': Date.now},
-        views: {type: Number, default : 0}
+	var FriendSchema = mongoose.Schema({
+        user_id : {type: mongoose.Schema.ObjectId, ref: 'users'},		// 클라이언트의 Obj_id
+        friends : [{
+            friends_id : {type: mongoose.Schema.ObjectId, ref: 'users'}, // 친구들의 Obj_id
+            created_at: {type: Date, index: {unique: false}, 'default': Date.now},
+        }],		        // 
+        requests : [{
+            requests_id : {type: mongoose.Schema.ObjectId, ref: 'users'}, // 친구 요청한 사용자들의 Obj_id
+            created_at: {type: Date, index: {unique: false}, 'default': Date.now},
+        }]
 	});
 	
     
-	// 필수 속성에 대한 'required' validation
+	/*// 필수 속성에 대한 'required' validation
 	PostSchema.path('title').required(true, '글 제목을 입력하셔야 합니다.');
-	PostSchema.path('contents').required(true, '글 내용을 입력하셔야 합니다.');
+	PostSchema.path('contents').required(true, '글 내용을 입력하셔야 합니다.');*/
 	
 	// 스키마에 인스턴스 메소드 추가
-	PostSchema.methods = {
+	FriendSchema.methods = {
 		savePost: function(callback) {		// 글 저장
 			var self = this;
 			
@@ -56,7 +52,7 @@ SchemaObj.createSchema = function(mongoose) {
 		}
 	}
 	
-	PostSchema.statics = {
+	FriendSchema.statics = {
 		// ID로 글 찾기
 		load: function(id, callback) {
 //            this.update({_id : id}, {$inc: {views : 1}});
@@ -92,21 +88,17 @@ SchemaObj.createSchema = function(mongoose) {
               { $pull: { 'comments': { _id: comment_id } } }
             )
                 .exec(callback);
-        },
-        // 게시글 삭제 위한 static 함수
-        postdelete: function(del_post_id, callback) {
-            this.deleteOne(
-                {_id : del_post_id}
-            )
-                .exec(callback);
         }
+        /*commentsdelete: function(post_id, index, callback) {
+            var index = utils.indexOf()
+        }*/
 	}
 	
-	console.log('PostSchema 정의함.');
+	console.log('FriendSchema 정의함.');
 
-	return PostSchema;
+	return FriendSchema;
 };
 
-// module.exports에 PostSchema 객체 직접 할당
+// module.exports에 FriendSchema 객체 직접 할당
 module.exports = SchemaObj;
 

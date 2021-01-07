@@ -17,6 +17,7 @@ Schema.createSchema = function (mongoose) {
         ,provider : {type:String, 'default': ' '}
         ,authToken : {type:String, 'default': ' '}
         ,facebook : { }
+        ,friends : {type: mongoose.Schema.ObjectId, ref: 'users'},
 	});
 	
 	UserSchema
