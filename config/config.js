@@ -14,6 +14,8 @@ module.exports = {
         ,{file : './post', path : '/process/listpost', method : 'listpost', type : 'get'}
         ,{file : './post', path : '/process/addcomments', method : 'addcomments', type : 'post'}
         ,{file : './post', path : '/process/deletecomments', method : 'deletecomments', type : 'post'}
+        ,{file : './friend', path : '/process/showfriends/:id', method : 'showfriends', type : 'get'}
+        ,{file : './friend', path : '/process/showfriends/:id', method : 'showfriends', type : 'post'}
         
 		
 	],

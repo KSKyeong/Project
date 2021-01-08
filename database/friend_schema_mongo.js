@@ -53,12 +53,19 @@ SchemaObj.createSchema = function(mongoose) {
 	}
 	
 	FriendSchema.statics = {
-		// ID로 글 찾기
-		load: function(id, callback) {
-//            this.update({_id : id}, {$inc: {views : 1}});
-			this.findOne({_id: id})
-				.populate('writer', 'name provider email')
-				.populate('comments.writer')
+		// 친구 목록 조회 시 사용할 함수(모두 권한 O)
+		load_all: function(user_id, callback) {
+			this.findOne({user_id: user_id})
+				.populate('friends.friends_id')
+				.populate('requests.requests_id')
+                .populate('user_id', 'name')
+				.exec(callback);
+		},
+        // 친구 리스트만 불러온다(요청 관련은 권한 없음)
+        load_friends: function(user_id, callback) {
+			this.findOne({user_id: user_id}, {requests:0})
+				.populate('friends.friends_id')
+                .populate('user_id', 'name')
 				.exec(callback);
 		},
 		list: function(options, callback) {
