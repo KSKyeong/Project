@@ -93,6 +93,14 @@ SchemaObj.createSchema = function(mongoose) {
             )
                 .exec(callback);
         },
+        delete_friend: function(user_id, delete_id ,callback) {
+            this.updateMany(
+              { user_id: user_id },
+              { $pull: 
+               { 'friends': { friends_id: delete_id } } }
+            )
+                .exec(callback);
+        }
 	}
 	
 	console.log('FriendSchema 정의함.');

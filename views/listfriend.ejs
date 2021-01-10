@@ -83,7 +83,7 @@
                         <div class="content">
                             <h3 class="ui block header">나의 친구 목록</h3>
                             <% if(friends_.length>0) { %>
-                            
+
 
                             <%      friends_.forEach(function(friend) { 
                             /*console.log(friend);
@@ -100,7 +100,16 @@
                                                 <%= friend.friends_id.name %>
                                             </a>
                                         </div>
+
                                     </div>
+                                </div>
+                                <div>
+                                    <form method="post" action="/process/deletefriend">
+                                        <input type="hidden" name="delete_id" value="<%= friend.friends_id._id %>">
+                                        <button type="submit" class="mini ui icon button">
+                                            <i class="user mini icon">삭제</i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                             <%      });
@@ -116,11 +125,11 @@
                             <% if(requests_ != undefined) { %>
                             <h4 class="ui block header">나의 친구 요청</h4>
                             <%      if(requests_.length>0) { %>
-                            
+
                             <%          requests_.forEach(function(request) { %>
                             <div class="ui middle aligned divided list">
                                 <div class="item">
-                                    
+
                                     <img class="ui avatar image" src="/images/avatar/small/helen.jpg">
                                     <div class="content">
                                         <div class="header">
@@ -130,22 +139,18 @@
                                                           return false;"><%= request.requests_id.name %></a>
                                         </div>
                                     </div>
-                                    
+
                                     <!--친구 추가 요청 수락 및 거절-->
                                     <div class="right floated content">
                                         <form method="post" action="/process/friendrequest">
-                                            <input type="hidden" name="request_id" 
-                                                   value="<%= request.requests_id._id %>">
-                                            <input type="hidden" name="accept" 
-                                                   value=true>
+                                            <input type="hidden" name="request_id" value="<%= request.requests_id._id %>">
+                                            <input type="hidden" name="accept" value=true>
                                             <button type="submit" class="ui primary basic button" id="pushComment">수락</button>
-                                            
+
                                         </form>
                                         <form method="post" action="/process/friendrequest">
-                                            <input type="hidden" name="request_id" 
-                                                   value="<%= request.requests_id._id %>">
-                                            <input type="hidden" name="accept" 
-                                                   value=false>
+                                            <input type="hidden" name="request_id" value="<%= request.requests_id._id %>">
+                                            <input type="hidden" name="accept" value=false>
                                             <button type="submit" class="ui secondary basic button" id="pushComment">거절</button>
                                         </form>
                                     </div>

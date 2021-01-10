@@ -415,7 +415,86 @@ var friendrequest = function (req, res) {
 
 }
 
+var deletefriend = function (req, res) {
+    console.log('deletefriend 함수 호출됨');
+    // 친구 삭제 요청한 친구의 고유 아이디 값 Obj_id
+    var delete_id = req.body.delete_id || req.query.delete_id || req.params.delete_id;
+    var user_id = req.user._id;
+    console.log('deletefriend 요청 받음 , 삭제할 친구의 아이디 : ' + delete_id);
+
+
+    if (!req.user || req.isAuthenticated() != true) {
+        console.log('사용자 인증이 안 된 상태임');
+        res.redirect('/login');
+    } else { //인증이 된 경우
+        console.log('사용자 인증 된 상태임');
+
+        var database = req.app.get('db');
+        if (database.db) {
+
+            // 수락 거절 둘다 요청 목록에서 삭제 먼저
+            database.FriendModel.delete_friend(user_id, delete_id, function (err, results) {
+                if (err || results == undefined) {
+                    console.error('친구 요청 처리중 에러 발생 : ' + err.stack);
+
+                    res.writeHead('200', {
+                        'Content-Type': 'text/html;charset=utf8'
+                    });
+                    res.write('<h2>친구 요청 처리중 에러 발생</h2>');
+                    res.write('<p>' + err.stack + '</p>');
+                    res.end();
+
+                    return;
+                }
+                if (results.nModified == 0) {
+                    console.log('친구 요청 처리 오류 발생 !! (중복 고려)');
+                    console.log(results);
+                    return res.redirect('/process/showfriends/' + user_id);
+                }
+                if (results.nModified > 0) {
+                    console.log(results);
+                    console.log('내 친구 목록에서 삭제 성공');
+
+
+                    database.FriendModel.delete_friend(delete_id, user_id, function (err, result) {
+                        if (err || result == undefined) {
+                            console.error('친구 요청 처리중 에러 발생 : ' + err.stack);
+
+                            res.writeHead('200', {
+                                'Content-Type': 'text/html;charset=utf8'
+                            });
+                            res.write('<h2>친구 요청 처리중 에러 발생</h2>');
+                            res.write('<p>' + err.stack + '</p>');
+                            res.end();
+
+                            return;
+                        }
+                        if (result) {
+
+                            console.log('친구 삭제 처리 성공');
+                            console.dir(result);
+                            return res.redirect('/process/showfriends/' + user_id);
+                        }
+                    });
+
+
+
+                }
+            });
+
+
+        } else {
+            res.writeHead('200', {
+                'Content-Type': 'text/html;charset=utf8'
+            });
+            res.write('<h2>데이터베이스 연결 실패</h2>');
+            res.end();
+        }
+    }
+}
+
 module.exports.showfriends = showfriends;
 module.exports.showprofile = showprofile;
 module.exports.req_friend = req_friend;
 module.exports.friendrequest = friendrequest;
+module.exports.deletefriend = deletefriend;

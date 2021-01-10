@@ -20,6 +20,7 @@ module.exports = {
         ,{file : './friend', path : '/process/profile/:id', method : 'showprofile', type : 'post'}
         ,{file : './friend', path : '/process/req_friend/:name', method : 'req_friend', type : 'get'}
         ,{file : './friend', path : '/process/friendrequest', method : 'friendrequest', type : 'post'}
+        ,{file : './friend', path : '/process/deletefriend', method : 'deletefriend', type : 'post'}
         
         
 		
