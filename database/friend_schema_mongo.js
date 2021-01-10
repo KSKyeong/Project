@@ -68,37 +68,31 @@ SchemaObj.createSchema = function(mongoose) {
                 .populate('user_id', 'name')
 				.exec(callback);
 		},
-		list: function(options, callback) {
-			var criteria = options.criteria || {};
-			
-			this.find(criteria)
-				.populate('writer', 'name provider email')
-				.sort({'created_at': -1})
-				.limit(Number(options.perPage))
-				.skip(options.perPage * options.page)
-				.exec(callback);
-		},
-        viewupdate: function(id, callback) {
-            this.updateOne({_id : id}, {$inc: {views : 1}})
-                .exec(callback);
-        },
-        commentsupdate: function(id, comment, writer, callback) {
-            this.updateOne({_id: id}, {$push: {comments : 
-                { contents: comment, writer: writer }
+        // 친구 요청을 보낸다.
+		request_friend: function(req_to_id, user_id, callback) {
+			this.updateOne({user_id: req_to_id}, {$push: {requests : 
+                {requests_id: user_id}
             }})
                 .exec(callback);
-        },
-        // 수정 필요, 인스턴스 객체로 먼저 해보자
-        commentsdelete: function(comment_id, post_id, callback) {
-            this.updateOne(
-              { _id: post_id },
-              { $pull: { 'comments': { _id: comment_id } } }
+		},
+        // 친구 요청 수락 -> requests 배열에서 삭제 , friends 배열에 추가
+        // 친구 요청 거절 -> requests 배열에서 삭제
+        request_accept_del: function(user_id, request_id ,callback) {
+            this.updateMany(
+              { user_id: user_id },
+              { $pull: 
+               { 'requests': { requests_id: request_id } } }
             )
                 .exec(callback);
-        }
-        /*commentsdelete: function(post_id, index, callback) {
-            var index = utils.indexOf()
-        }*/
+        },
+        request_accept_add: function(user_id, request_id ,callback) {
+            this.updateOne(
+              { user_id: user_id },
+              { $push: 
+               { 'friends': { friends_id: request_id } } }
+            )
+                .exec(callback);
+        },
 	}
 	
 	console.log('FriendSchema 정의함.');

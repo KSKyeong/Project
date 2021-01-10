@@ -16,6 +16,11 @@ module.exports = {
         ,{file : './post', path : '/process/deletecomments', method : 'deletecomments', type : 'post'}
         ,{file : './friend', path : '/process/showfriends/:id', method : 'showfriends', type : 'get'}
         ,{file : './friend', path : '/process/showfriends/:id', method : 'showfriends', type : 'post'}
+        ,{file : './friend', path : '/process/profile/:id', method : 'showprofile', type : 'get'}
+        ,{file : './friend', path : '/process/profile/:id', method : 'showprofile', type : 'post'}
+        ,{file : './friend', path : '/process/req_friend/:name', method : 'req_friend', type : 'get'}
+        ,{file : './friend', path : '/process/friendrequest', method : 'friendrequest', type : 'post'}
+        
         
 		
 	],

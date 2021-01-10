@@ -31,7 +31,8 @@
  1/7
  - 게시글 및 댓글 추가 삭제 모두 완료
  - sign_up 시에, friend 컬렉션 자동 생성(local, facebook) -> user_id 속성값으로 _id 값을 넣어줌
-
+ 1/9
+ - 프로필 보기, 친구 추가 및 삭제
  */
 
 var express =  require('express')

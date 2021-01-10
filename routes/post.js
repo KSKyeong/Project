@@ -375,8 +375,6 @@ var showpost = function(req, res) {
                         posts: results,
                         Entities: Entities,
                         user_info : user
-
-
                     };
 
                     req.app.render('showpost', context, function(err, html) {

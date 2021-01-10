@@ -10,7 +10,7 @@ Schema.createSchema = function (mongoose) {
 	var UserSchema = mongoose.Schema({
         email: {type:String, 'default':' ', required:true, unique : true}
         ,hashed_password : {type:String, 'default':' ', required:true}
-        ,name: {type:String, index:'hashed', 'default':' '}
+        ,name: {type:String, index:'hashed', 'default':' ', trim:true}
         ,salt : {type : String}
         ,created_at: {type:Date, index:{unique:false}, 'default':Date.now}
         ,updated_at: {type:Date, index:{unique:false}, 'default':Date.now}
@@ -95,6 +95,14 @@ Schema.createSchema = function (mongoose) {
 	// 스키마 static 메소드 정의
 	UserSchema.static('findByEmail', function(email, callback) {
 		return this.find({email:email}, callback);
+	});	
+    
+    UserSchema.static('findByName', function(name, callback) {
+		return this.find({name:name}, callback);
+	});	
+    
+    UserSchema.static('findBy_Id', function(id, callback) {
+		return this.find({_id:id}, callback);
 	});	
 
 	/*UserSchema.statics.findByID = function(id, callback) {

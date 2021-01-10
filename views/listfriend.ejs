@@ -64,7 +64,7 @@
         <!--            <a class="ui blue ribbon label">게시판</a>-->
         <span id="board_title"><%=title %></span>
         <div class="ui blue fluid card">
-            <div class="ui two column relaxed grid">
+            <div class="ui relaxed grid">
                 <%
                     var friends_ = friends._doc.friends;
                     var cur_user = user_info._id;
@@ -75,22 +75,31 @@
                 %>
                 <% console.log('현재 유저 : ' + cur_user + ' 친구 목록 주인 : ' + whos_friend._id);
                 if(cur_user == whos_friend._id) { %>
+                <!--내 친구 목록이면-->
                 <% var requests_ = friends._doc.requests;
                      %>
-                <div class="column">
+                <div class="twelve wide column">
                     <div class="ui raised segment">
                         <div class="content">
-                            <% if(friends_.length>0) { %>
                             <h3 class="ui block header">나의 친구 목록</h3>
+                            <% if(friends_.length>0) { %>
+                            
 
                             <%      friends_.forEach(function(friend) { 
-                            console.log(friend);
-                            console.log(friend.friends_id);%>
-                            <div class="ui massive horizontal divided list">
+                            /*console.log(friend);
+                            console.log(friend.friends_id);*/%>
+                            <div class="ui huge horizontal divided list">
                                 <div class="item">
                                     <img class="ui avatar image" src="/images/avatar/small/helen.jpg">
                                     <div class="content">
-                                        <div class="header"><a><%= friend.friends_id.name %></a></div>
+                                        <div class="header">
+                                            <a type="submit" href="../profile/<%= friend.friends_id._id %>" onclick="window.open(href, 
+                                                                     'newwindow', 
+                                                                     'width=500,height=650'); 
+                                                          return false;">
+                                                <%= friend.friends_id.name %>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -101,23 +110,44 @@
                     </div>
                 </div>
 
-
-                <div class="column">
+                <div class="four wide column">
                     <div class="ui raised segment">
                         <div class="content">
                             <% if(requests_ != undefined) { %>
-                            <%      if(requests_.length>0) { %>
                             <h4 class="ui block header">나의 친구 요청</h4>
+                            <%      if(requests_.length>0) { %>
+                            
                             <%          requests_.forEach(function(request) { %>
                             <div class="ui middle aligned divided list">
                                 <div class="item">
-                                    <div class="right floated content">
-                                        <div class="ui primary button">수락</div>
-                                        <div class="ui  button">거절</div>
-                                    </div>
+                                    
                                     <img class="ui avatar image" src="/images/avatar/small/helen.jpg">
                                     <div class="content">
-                                        <div class="header"><a><%= request.requests_id.name %></a></div>
+                                        <div class="header">
+                                            <a type="submit" href="../profile/<%= request.requests_id._id %>" onclick="window.open(href, 
+                                                                     'newwindow', 
+                                                                     'width=500,height=650'); 
+                                                          return false;"><%= request.requests_id.name %></a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!--친구 추가 요청 수락 및 거절-->
+                                    <div class="right floated content">
+                                        <form method="post" action="/process/friendrequest">
+                                            <input type="hidden" name="request_id" 
+                                                   value="<%= request.requests_id._id %>">
+                                            <input type="hidden" name="accept" 
+                                                   value=true>
+                                            <button type="submit" class="ui primary basic button" id="pushComment">수락</button>
+                                            
+                                        </form>
+                                        <form method="post" action="/process/friendrequest">
+                                            <input type="hidden" name="request_id" 
+                                                   value="<%= request.requests_id._id %>">
+                                            <input type="hidden" name="accept" 
+                                                   value=false>
+                                            <button type="submit" class="ui secondary basic button" id="pushComment">거절</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>
@@ -128,25 +158,42 @@
                         </div>
                     </div>
                 </div>
+
+
+                <!--나의 친구목록이 아니면-->
                 <% } else { %>
-                <div class="ui raised segment">
-                    <div class="content">
-                        <% if(friends_.length>0) { %>
-                        <h3 class="ui dividing header"><%=whos_friend.name%>의 친구 목록</h3>
+                <div class="sixteen wide column">
+                    <div class="ui raised segment">
+                        <div class="content">
+                            <div class="ui huge horizontal divided list">
+                                <% if(friends_.length>0) { %>
+                                <h3 class="ui dividing header"><%=whos_friend.name%>의 친구 목록</h3>
 
-                        <%      friends_.forEach(function(friend) { %>
-                        <div class="ui massive horizontal divided list">
-                            <div class="item">
-                                <img class="ui avatar image" src="/images/avatar/small/helen.jpg">
-                                <div class="content">
-                                    <div class="header"><a><%= friend.friends_id.name %></a></div>
+                                <%      friends_.forEach(function(friend) { %>
+
+                                <div class="item">
+                                    <img class="ui avatar image" src="/images/avatar/small/helen.jpg">
+                                    <div class="content">
+                                        <div class="header">
+                                            <a type="submit" href="../profile/<%= friend.friends_id._id %>" onclick="window.open(href, 
+                                                                     'newwindow', 
+                                                                     'width=500,height=650'); 
+                                                          return false;"><%= friend.friends_id.name %></a>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <%      });
-                        }
-                    }%>
 
+                                <%      });
+                            } else { %>
+                                <div class="item">
+                                    <h3 class="ui dividing header"><%=whos_friend.name%>의 친구 목록</h3>
+                                    <p>등록된 친구가 없습니다.</p>
+                                </div>
+                                <% }
+                            }%>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             </div>
