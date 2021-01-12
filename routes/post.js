@@ -394,7 +394,8 @@ var showpost = function(req, res) {
 
                 } else {
                     res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
-                    res.write('<h2>글 조회  실패</h2>');
+                    res.write('<h2>글 조회 실패</h2>');
+                    res.write('<a type="button" href="../listpost" >돌아가기</a>');
                     res.end();
                 }
             });
