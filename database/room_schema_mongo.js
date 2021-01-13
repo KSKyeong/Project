@@ -109,16 +109,21 @@ Schema.createSchema = function (mongoose) {
                 .skip(options.perPage * options.page)
                 .exec(callback);
         },
-        loadroom: function (options, callback) {
-            var criteria = options.criteria || {};
+        loadroom: function (id, callback) {
 
-            this.find(criteria)
-                .populate('writer', 'name provider email')
+            this.findOne({_id : id})
+                .populate('chats.writer', 'name email')
+                .populate('owner', 'name email')                
+                .exec(callback);
+        },
+        // 사용자가 들어있는 방들의 obj 아이디 값만 리턴 -> 요청 함수에서 판단
+        userauth: function (id, callback) {
+            this.find({
+                    'users.users_id': id
+                }, {_id : 1})
                 .sort({
                     'created_at': -1
                 })
-                .limit(Number(options.perPage))
-                .skip(options.perPage * options.page)
                 .exec(callback);
         },
         viewupdate: function (id, callback) {
