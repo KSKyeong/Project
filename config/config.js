@@ -5,6 +5,7 @@ module.exports = {
 		{file: './user_schema_mongo', collection: 'users', schemaName: 'UserSchema', modelName: 'UserModel'}
         ,{file: './post_schema_mongo', collection: 'post', schemaName: 'PostSchema', modelName: 'PostModel'}
         ,{file: './friend_schema_mongo', collection: 'friend', schemaName: 'FriendSchema', modelName: 'FriendModel'}
+        ,{file: './room_schema_mongo', collection: 'rooms', schemaName: 'RoomSchema', modelName: 'RoomModel'}
 	],
 	route_info : [
         {file : './post', path : '/process/addpost', method : 'addpost', type : 'post'}
@@ -21,6 +22,8 @@ module.exports = {
         ,{file : './friend', path : '/process/req_friend/:name', method : 'req_friend', type : 'get'}
         ,{file : './friend', path : '/process/friendrequest', method : 'friendrequest', type : 'post'}
         ,{file : './friend', path : '/process/deletefriend', method : 'deletefriend', type : 'post'}
+        ,{file : './room', path : '/process/listroom', method : 'listroom', type : 'post'}
+        ,{file : './room', path : '/process/listroom', method : 'listroom', type : 'get'}
         
         
 		
