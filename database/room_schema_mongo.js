@@ -99,9 +99,14 @@ Schema.createSchema = function (mongoose) {
         roomslist: function (options, callback) {
             var id = options.user_id;
             this.find({
-                    'users.users_id' : id
+                    'users.users_id': id
                 })
                 .populate('owner', 'name ')
+                .sort({
+                    'created_at': -1
+                })
+                .limit(Number(options.perPage))
+                .skip(options.perPage * options.page)
                 .exec(callback);
         },
         loadroom: function (options, callback) {

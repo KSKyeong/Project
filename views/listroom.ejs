@@ -52,8 +52,8 @@
     <script src="/public/semantic.min.js"></script>
 
     <script>
-        function listpost(page, perPage) {
-            document.location = '/process/listpost?page=' + page + '&perPage=' + perPage;
+        function listroom(page, perPage) {
+            document.location = '/process/listroom?page=' + page + '&perPage=' + perPage;
         }
 
     </script>
@@ -122,10 +122,10 @@
                         <%
 					 			if (page > 0) {
 					 		%>
-                        <div class="ui icon button" onclick="listpost(0, <%=perPage %>)">
+                        <div class="ui icon button" onclick="listroom(0, <%=perPage %>)">
                             <i class="backward icon"></i>
                         </div>
-                        <div class="ui icon button" onclick="listpost(<%=(page-1) %>, <%=perPage %>)">
+                        <div class="ui icon button" onclick="listroom(<%=(page-1) %>, <%=perPage %>)">
                             <i class="chevron left icon"></i>
                         </div>
                         <%
@@ -155,7 +155,7 @@
 					 			for (var i = initial; i < max; i++) {
 					 				if (i != page) {
 					 		%>
-                        <div class="ui button" onclick="listpost(<%=i %>, <%=perPage %>)">
+                        <div class="ui button" onclick="listroom(<%=i %>, <%=perPage %>)">
                             <%= i %>
                         </div>
                         <%
@@ -171,10 +171,10 @@
                         <%
 					 			if ((page+1) < pageCount) {
 					 		%>
-                        <div class="ui icon button" onclick="listpost(<%=(page+1) %>, <%=perPage %>)">
+                        <div class="ui icon button" onclick="listroom(<%=(page+1) %>, <%=perPage %>)">
                             <i class="right chevron icon"></i>
                         </div>
-                        <div class="ui icon button" onclick="listpost(<%=(pageCount-1) %>, <%=perPage %>)">
+                        <div class="ui icon button" onclick="listroom(<%=(pageCount-1) %>, <%=perPage %>)">
                             <i class="forward icon"></i>
                         </div>
                         <%
@@ -192,7 +192,7 @@
                     </div>
 
                     <br><br>
-                    <a class="ui button" href='/process/listroom?page=0&perPage=2'>재요청</a>
+                    <a class="ui button" href='/process/listroom?page=0&perPage=2'>새로고침</a>
                     <a class="ui button" >새로운 채팅방 만들기</a>
 
                 </div>

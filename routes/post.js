@@ -267,11 +267,12 @@ var listpost = function(req, res) {
             }
 			
 			if (results) {
-//				console.dir(results);
+				console.log(results.length);
  
 				// 전체 문서 객체 수 확인
 				database.PostModel.countDocuments().exec(function(err, count) {
-
+                    
+                    console.dir(count);
 					res.writeHead('200', {'Content-Type':'text/html;charset=utf8'});
 					
 					// 뷰 템플레이트를 이용하여 렌더링한 후 전송

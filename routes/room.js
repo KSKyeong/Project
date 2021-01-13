@@ -9,7 +9,7 @@ var listroom = function (req, res) {
 
     var database = req.app.get('db');
 
-    
+
 
     // 사용자 인증된 상태일 때 조회 권한
     if (req.isAuthenticated()) {
@@ -19,11 +19,9 @@ var listroom = function (req, res) {
         if (database.db) {
 
             var options = {
-                pages: {
-                    page: paramPage,
-                    perPage: paramPerPage
-                },
-                user_id: user_id            
+                page: paramPage,
+                perPage: paramPerPage,
+                user_id: user_id
             }
 
             // 방 목록 불러오는 static 메소드 호출
@@ -42,14 +40,19 @@ var listroom = function (req, res) {
                 }
 
                 if (results) {
-//                    console.dir(results[0]._doc);
+                    console.dir("results.length : " + results.length);
 
-                    // 전체 문서 객체 수 확인
-                    database.PostModel.countDocuments().exec(function (err, count) {
+                    database.RoomModel.countDocuments({
+                        'users.users_id': user_id
+                    }).exec(function (err, count) {
+                        // 전체 문서 객체 수 확인
+                        /*var count = results.length;*/
 
                         res.writeHead('200', {
                             'Content-Type': 'text/html;charset=utf8'
                         });
+                        
+                        console.log('count : ' + count);
 
                         // 뷰 템플레이트를 이용하여 렌더링한 후 전송
                         var context = {
@@ -78,7 +81,6 @@ var listroom = function (req, res) {
 
                             res.end(html);
                         });
-
                     });
 
                 } else {
