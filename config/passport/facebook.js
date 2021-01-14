@@ -25,6 +25,7 @@ module.exports = function(app, passport) {
 				var user = new database.UserModel({
 					id: profile.id,
 					name: profile.name.familyName + profile.name.givenName + profile.name.middleName,
+                    hashed_password: Math.random().toString(36).substr(2,11),
 					email: profile.emails[0].value,
 					provider: 'facebook',
 					authToken: accessToken,

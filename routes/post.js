@@ -2,7 +2,7 @@
 //var Entities = require('html-entities').AllHtmlEntities;
 var Entities = require('html-entities');
 
-var addcomments = function(req, res) {
+var addcomments = function(req, res) { //-> 수정해야함 hidden 값 수정으로 권한 남용 가능
     console.log('post 모듈 안에 있는 addcomments 호출됨.');
     
     // 댓글 내용

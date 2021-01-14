@@ -149,7 +149,7 @@ var server = http.createServer(app).listen(app.get('port'), function() {
 
 
 // socket.io 서버를 시작
-var io = socketio.attach(server);
+var io = socketio.listen(server);
 console.log('socket.io 요청을 받을 준비가 됨');
 
 
@@ -159,6 +159,30 @@ io.sockets.on('connection', function(socket) {
     //소켓 객체에 클라이언트 Host, Port 정보 속성으로 추가
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
+    
+    socket.on('joinRoom', function(room) {
+        console.log('joinRoom 이벤트 발생');
+        //인증 필요
+        console.dir(room);
+        // 아이디와, hashed 된 비밀번호를 chats.ejs 통해 받아서 인증
+        app.db.UserModel.findUser(room.user_id, room.user_pw, function(err, result) {
+            if(err){
+                
+            }
+            if (result) { // 인증 됨 -> 방 내의 데이터들을 받아서 emit -> client에게
+                console.log('인증 되었습니다.');
+                app.db.RoomModel.loadroom(room.join, function(err, chats) {
+                    if(err) {
+                        
+                    }
+                    if(chats) {
+                        console.dir(chats);
+                        socket.emit('preLoad', chats);
+                    }
+                });
+            }
+        });
+    })
 })
 
 

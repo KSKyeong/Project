@@ -104,6 +104,10 @@ Schema.createSchema = function (mongoose) {
     UserSchema.static('findBy_Id', function(id, callback) {
 		return this.find({_id:id}, callback);
 	});	
+    
+    UserSchema.static('findUser', function(id, hashed_pw ,callback) {
+		return this.find({_id:id, hashed_password:hashed_pw}, callback);
+	});
 
 	/*UserSchema.statics.findByID = function(id, callback) {
 		return this.find({'id': id}, callback);
