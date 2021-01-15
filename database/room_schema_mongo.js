@@ -21,6 +21,11 @@ Schema.createSchema = function (mongoose) {
                 type: mongoose.Schema.ObjectId,
                 ref: 'users'
             },
+            users_email: {
+                type: String,
+                'default': '',
+                required: true
+            },
             created_at: {
                 type: Date,
                 'default': Date.now
@@ -107,6 +112,16 @@ Schema.createSchema = function (mongoose) {
                 })
                 .limit(Number(options.perPage))
                 .skip(options.perPage * options.page)
+                .exec(callback);
+        },
+        getrooms: function (id, callback) {
+            this.find({
+                    'users.users_id': id
+                })
+                .populate('owner', 'name ')
+                .sort({
+                    'created_at': -1
+                })            
                 .exec(callback);
         },
         loadroom: function (id, callback) {

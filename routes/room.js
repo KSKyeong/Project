@@ -285,9 +285,72 @@ var showchats = function (req, res) {
     }
 };
 
+var getroomlist = function(req, res) {
+    console.log('req.body : ' + req.body);
+    var user_email = req.body.email || req.query.email;
+    
+    var database = req.app.get('db');
+    if (database.db) {
 
+        // 먼저 아이디를 통해 _id를 조회
+        database.UserModel.findByEmail(user_email, function (err, results) {
+            if (err) {
+                console.error('게시판 글 목록 조회 중 에러 발생 : ' + err.stack);
+
+                res.writeHead('200', {
+                    'Content-Type': 'text/html;charset=utf8'
+                });
+                res.write('<h2>게시판 글 목록 조회 중 에러 발생</h2>');
+                res.write('<p>' + err.stack + '</p>');
+                res.end();
+
+                return;
+            }
+
+            if (results.length > 0) {
+                var user_id = results[0]._doc._id;
+                console.dir("results.length : " + results.length + ', user_id : ' + user_id);
+                database.RoomModel.getrooms(user_id, function(err, rooms) {
+                    if (err) {
+                        console.error('게시판 글 목록 조회 중 에러 발생 : ' + err.stack);
+
+                        res.writeHead('200', {
+                            'Content-Type': 'text/html;charset=utf8'
+                        });
+                        res.write('<h2>게시판 글 목록 조회 중 에러 발생</h2>');
+                        res.write('<p>' + err.stack + '</p>');
+                        res.end();
+
+                        return;
+                    }
+                    if (rooms.length != 0) {
+                        res.send(rooms);
+                        /*return;*/
+                    }
+                    return;
+                    
+                });
+                
+
+            } else {
+                res.writeHead('200', {
+                    'Content-Type': 'text/html;charset=utf8'
+                });
+                res.write('<h2 아이디 조회  실패</h2>');
+                res.end();
+            }
+        });
+    } else {
+        res.writeHead('200', {
+            'Content-Type': 'text/html;charset=utf8'
+        });
+        res.write('<h2>데이터베이스 연결 실패</h2>');
+        res.end();
+    }
+}
 
 
 
 module.exports.listroom = listroom;
 module.exports.showchats = showchats;
+module.exports.getroomlist = getroomlist;

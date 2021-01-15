@@ -150,10 +150,10 @@ console.dir(io.sockets.adapter.rooms);
 
 var login_ids = {};
 
-io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
+
 
 // 클라이언트가 연결했을 때 이벤트 처리 - sockets 객체는 클라가 접속하거나 데이터를 전송했을 때, 이벤트 발생
-io.on('connection', function(socket) {
+io.sockets.on('connection', function(socket) {
     console.log('connection info : '+ JSON.stringify(socket.request.connection._peername));
     
     //소켓 객체에 클라이언트 Host, Port 정보 속성으로 추가
@@ -191,9 +191,10 @@ io.on('connection', function(socket) {
     // 로그인 이벤트를 어떻게 처리할 것인가
     socket.on('login', function(login) {
         console.log('login 이벤트를 받았습니다.');
-        console.dir(login);
+        console.dir(login); // id와 비밀번호의 정보가 담겨있다.
         
-        console.log('접속한 소켓의 ID : ' + socket.id);
+        
+        console.log('접속한 소켓의 ID(소켓 고유) : ' + socket.id);
         login_ids[login.id] = socket.id;
         socket.login_id = login.id;
         console.log(login_ids);

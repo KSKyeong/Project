@@ -152,7 +152,10 @@ var server = http.createServer(app).listen(app.get('port'), function() {
 var io = socketio.listen(server);
 console.log('socket.io 요청을 받을 준비가 됨');
 
+var login_ids = {};
 
+
+// 클라이언트가 연결했을 때 이벤트 처리 - sockets 객체는 클라가 접속하거나 데이터를 전송했을 때, 이벤트 발생
 io.sockets.on('connection', function(socket) {
     console.log('connection info : '+ JSON.stringify(socket.request.connection._peername));
     
@@ -160,31 +163,201 @@ io.sockets.on('connection', function(socket) {
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
     
-    socket.on('joinRoom', function(room) {
-        console.log('joinRoom 이벤트 발생');
-        //인증 필요
-        console.dir(room);
-        // 아이디와, hashed 된 비밀번호를 chats.ejs 통해 받아서 인증
-        app.db.UserModel.findUser(room.user_id, room.user_pw, function(err, result) {
-            if(err){
-                
+    
+    
+    // 로그인 이벤트를 어떻게 처리할 것인가
+    socket.on('login', function(login) {
+        console.log('login 이벤트를 받았습니다.');
+        console.dir(login); // id와 비밀번호의 정보가 담겨있다.
+        var database = app.get('db');
+        database.UserModel.findOne({'email' : login.email}, function(err, user) {
+            if(err) {
+                sendAlert(socket, 'login', '404', '사용자 인증 과정 중 에러 발생!');
             }
-            if (result) { // 인증 됨 -> 방 내의 데이터들을 받아서 emit -> client에게
-                console.log('인증 되었습니다.');
-                app.db.RoomModel.loadroom(room.join, function(err, chats) {
-                    if(err) {
-                        
-                    }
-                    if(chats) {
-                        console.dir(chats);
-                        socket.emit('preLoad', chats);
-                    }
-                });
+
+            if(!user || user.length < 1) {
+                console.log('입력된 email 과 일치하는 사용자 정보가 없다.');
+                sendAlert(socket, 'login', '404', '입력된 email 과 일치하는 사용자 정보가 없다.');
+                return;
             }
+            console.dir(user._doc);
+
+            var authenticated = user.authenticate(login.password, user._doc.salt, user._doc.hashed_password);
+
+            if (!authenticated) { // 비밀번호 틀렸을 경우
+                console.log('비밀번호 일치하지 않음');
+                sendAlert(socket, 'login', '404', '로그인 실패');
+            }
+
+            // 정상인 경우 -> 인증 성공인 경우 (login list => [서버 실행 중 간이 DB] 에 정보 저장 ).
+            console.log('chating 서버에서 로그인 성공');
+            
+            // 로그인 된 아이디들을 배열에 저장.
+            console.log('접속한 소켓의 ID(소켓 고유) : ' + socket.id);
+            login_ids[login.email] = socket.id;
+            socket.login_email = login.email;
+            console.log(login_ids);
+
+            console.log('로그인 한 전체 클라이언트의 수 : %d', Object.keys(login_ids).length);
+            
+            //응답 메시지 전송
+            var statusObj = {message:'로그인 되었습니다.'};
+            socket.emit('logined', statusObj);
         });
+        
+        
+    });
+    
+    //message 이벤트 받았을 때 처리
+    socket.on('message', function(message) {
+        console.log('message 이벤트를 받았습니다');
+        console.dir(message);
+        
+        if(message.recipient == 'ALL') {
+            //나를 포함한 모든 클라에게 메시지 전달
+            console.log('나를 포함한 모든 클라에게 message 이벤트를 전송합니다.');
+            
+            io.sockets.emit('message', message);
+        } else {
+            if(login_ids[message.recipient]) {
+                     
+                // io.sockets[login_ids[message.recipient]].emit('message', message); 
+//                -> socket.io 버전 문제로 수정
+                socket.to(login_ids[message.recipient]).emit('message', message);
+                //응답 메시지 전송
+                sendResponse(socket, 'message', '200', '메시지를 전송했습니다.');
+            } else {
+                //보내고자 하는 클라가 로그인 하지 않았을 때.
+                sendResponse(socket, 'login', '404', '상대방의 로그인 ID를 찾을 수가 없습니다.');
+            }
+       } 
+        
+    });
+    
+    
+    
+    
+    socket.on('logout', function(logout) {
+        console.log('로그아웃을 진행합니다');
+        console.log(login_ids);
+        var logout_idx = logout.id
+        delete login_ids[logout_idx];
+        console.log(login_ids);
+        sendResponse(socket, 'logout', '200', '로그아웃되었습니다.');
+           
+    });
+    
+    // 클라이언트의 방 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
+    socket.on('room', function(room) {
+        
+        console.log('room 이벤트를 받았다.');
+        console.dir(room);
+        
+        
+//        console.dir(socket.rooms[login_ids[room.roomId]]);
+        
+        if(room.command === 'create') {
+            //io.sockets는 전체 연결된 객체의 정보 담고있음
+            if(io.sockets.adapter.rooms[room.roomId]) {
+                console.log('방이 이미 만들어져 있습니다.');
+                
+            } else {
+                console.log('방을 새로 만듭니다.');
+                
+                socket.join(room.roomId);
+                console.log(io.sockets.sockets[room.roomId]);
+                console.log(io.sockets.allSockets());
+                //console.log(io.sockets.in(room.roomId));
+                
+                /*var curRoom = io.sockets.adapter.rooms[room.roomId];
+                console.log(curRoom);
+                
+                curRoom.id = room.roomId;
+                curRoom.name = room.roomName;
+                curRoom.owner = room.roomOwner;*/
+            } 
+        
+        
+        
+        } else if (room.command === 'update') {
+            var curRoom = io.sockets.adapter.rooms[room.roomId];
+            curRoom.id = room.roomId;
+            curRoom.name = room.roomName;
+            curRoom.owner = room.roomOwner;
+        } else if (room.command === 'delete') {
+            socket.leave(room.roomId);
+            
+            if(io.sockets.adapter.rooms[room.roomId]) {
+                delete io.sockets.adapter.rooms[room.roomId];
+            } else {
+                console.log('방이 만들어져 있지 않습니다');
+            }
+        }
+        
+        // room 이벤트를 처리하고 난 후 현재 방 리스트를 클라에게 보내준다.
+        var roomList = getRoomList();
+        
+        var output = {command : 'list', rooms : roomList};
+        console.log('클라이언트로 보낼 데이터 : ' + JSON.stringify(output));
+        
+        // 모든 연결 소켓 객체들에게 room 이벤트 전달.
+        io.sockets.emit('room', output);
     })
+    
 })
 
+// 사용자가 추가한 room 정보만 리스트를 만들어 반환 해주는 함수
+function getRoomList() {
+    console.log('getRoomList 호출됨');
+    /*console.log(io.sockets);
+    console.log(io.sockets.sockets);
+    console.dir(io.sockets.adapter.rooms);*/
+//    console.log(io.sockets.in());
+    console.dir(Object.keys(io.sockets.adapter.rooms)); 
+    
+    var roomList = [ ];
+    
+    Object.keys(io.sockets.adapter.rooms).forEach(function(roomId) {
+        console.log('current room id : ' + roomId);
+        var outRoom = io.sockets.adapter.rooms[roomId];
+        
+        var foundDefault = false;
+        var index = 0;
+        Object.keys(outRoom.sockets).forEach(function(key) {
+            console.log('#' + index + ' : ' + key + ', ' + outRoom.sockets[key]);
+            
+            
+            if(roomId == key) { // default room
+                foundDefault = true;
+                console.log('this is dafault room.');
+            }
+            index++;
+        });
+        
+        if(!foundDefault) {
+            roomList.push(outRoom);
+        }
+    });
+    
+    console.log('[Room List]');
+    console.dir(roomList);
+    
+    return roomList;
+}
+
+
+function sendResponse(socket, command, code, message) {
+    var statusObj = {command:command, code:code, message:message};
+    socket.emit('response', statusObj);
+}
+function sendError(socket, command, code, message) {
+    var statusObj = {command:command, code:code, message:message};
+    socket.emit('error', statusObj);
+}
+function sendAlert(socket, command, code, message) {
+    var statusObj = {command:command, code:code, message:message};
+    socket.emit('alert', statusObj);
+}
 
 
 
