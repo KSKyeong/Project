@@ -16,15 +16,13 @@
             $(function() {
 
             	// 연결하기 버튼 클릭 처리
-				$("#connectButton").bind('click', function(event) {
+				/*$("#connectButton").bind('click', function(event) {
 					println('connectButton이 클릭되었습니다.');
 					
-                    host = $('#hostInput').val();
-                    port = $('#portInput').val();
-
                     connectToServer();
-                });
-
+                });*/
+                // 바로 채팅 서버에 연결?
+                connectToServer();
 				// 전송 버튼 클릭 시 처리
                 $("#sendButton").bind('click', function(event) {
                 	
@@ -46,7 +44,9 @@
                     socket.emit('message', output);
                 });
 
-				// 로그인 버튼 클릭 시 처리
+                
+                
+				// 로그인 버튼 클릭 시 처리 -> 연결과 동시에 로그인 할 것
                 $("#loginButton").bind('click', function(event) {
                     var id = $('#idInput').val();
                     var password = $('#passwordInput').val();
@@ -66,6 +66,8 @@
 				
              	// 방만들기 버튼 클릭 시 처리
                 $("#createRoomButton").bind('click', function(event) {
+                    
+                    connectToServer();
                     var roomId = $('#roomIdInput').val();
                     var roomName = $('#roomNameInput').val();
                     var id = $('#idInput').val();
@@ -149,11 +151,12 @@
             function connectToServer() {
 
                 var options = {'forceNew':true};
-                var url = 'http://' + host + ':' + port;
+                var url = 'http://localhost:3701';
                 socket = io.connect(url, options);
 
                 socket.on('connect', function() {
                 	println('웹소켓 서버에 연결되었습니다. : ' + url);
+                    alert('채팅 서버에 연결 되었습니다');
 
                     socket.on('message', function(message) {
                         console.log(JSON.stringify(message));
@@ -200,12 +203,12 @@
 <body>
 	<h3>채팅 클라이언트 05 : 그룹 채팅하기</h3>
 	<br>
-    <div>
+    <!--<div>
         <input type="text" id="hostInput" value="localhost" />
         <input type="text" id="portInput" value="3701" />
 
         <input type="button" id="connectButton" value="연결하기" />
-    </div>
+    </div>-->
     <br>
     <div>
 		<input type="text" id="idInput" value="test01" />

@@ -188,7 +188,7 @@ io.on('connection', function(socket) {
     });
     
     
-    
+    // 로그인 이벤트를 어떻게 처리할 것인가
     socket.on('login', function(login) {
         console.log('login 이벤트를 받았습니다.');
         console.dir(login);

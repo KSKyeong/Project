@@ -25,6 +25,7 @@ module.exports = {
         ,{file : './room', path : '/process/listroom', method : 'listroom', type : 'post'}
         ,{file : './room', path : '/process/listroom', method : 'listroom', type : 'get'}
         ,{file : './room', path : '/process/showchats/:id', method : 'showchats', type : 'get'}
+        ,{file : './room', path : '/process/showchats/:id', method : 'showchats', type : 'post'}
         
         
 		

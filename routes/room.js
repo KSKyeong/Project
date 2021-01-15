@@ -168,7 +168,7 @@ var showchats = function (req, res) {
                                 }
                             };
                             console.dir(context);
-
+                            
                             req.app.render('chats', context, function (err, html) {
                                 if (err) {
                                     console.error('응답 웹문서 생성 중 에러 발생 : ' + err.stack);
@@ -180,7 +180,7 @@ var showchats = function (req, res) {
                                     return;
                                 }
                                 res.end(html);
-                                return;
+                                
                             });
                         } else {
                             res.writeHead('200', {
@@ -284,6 +284,10 @@ var showchats = function (req, res) {
         res.redirect('/login');
     }
 };
+
+
+
+
 
 module.exports.listroom = listroom;
 module.exports.showchats = showchats;
