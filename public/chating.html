@@ -218,12 +218,15 @@
             function createTable() {
                 
                 console.log('createTable 호출됨');
-                
+                var emails = $('#emailInput').val();
                 var param = {};
-                param.email = $('#emailInput').val();
+                console.log('뭐가 잘못 됐을까?');
+                param.email = emails;
+                console.log('뭐가 잘못 됐을까?');
                 /*param.password = $('#passwordInput').val();*/
                 /*param.BoardVo.bdId = "01111";*/
                 param = JSON.stringify(param); // 문자열 형태로 변환
+                console.dir(param);
 
                 $.ajax({
                     url : "/process/getRoomList",
@@ -245,7 +248,8 @@
                    $("#boardList").append(str); 
                 }).fail(function (err) {
                     console.log('뭔가 때문에 ajax가 실행이 안된다;');
-                    alert(JSON.stringify(err));
+                    /*alert(JSON.stringify(err));
+                    console.log(JSON.stringify(err));*/
                 });
             }
             
@@ -266,8 +270,8 @@
     </div>-->
     <br>
     <div>
-		<input type="text" id="emailInput" value="test01" />
-		<input type="password" id="passwordInput" value="123456" />
+		<input type="text" id="emailInput" value="asdf" />
+		<input type="password" id="passwordInput" value="zxcv" />
 		
 
 		<input type="button" id="loginButton" value="로그인" />

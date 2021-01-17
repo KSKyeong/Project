@@ -286,8 +286,11 @@ var showchats = function (req, res) {
 };
 
 var getroomlist = function(req, res) {
-    console.log('req.body : ' + req.body);
-    var user_email = req.body.email || req.query.email;
+    console.log('getroomlist 호출됨');
+    console.log(JSON.parse(req.body));
+    var data = JSON.parse(req.body);
+    console.log('어디가 문제냐');
+    var user_email = data.email;
     
     var database = req.app.get('db');
     if (database.db) {
@@ -324,7 +327,7 @@ var getroomlist = function(req, res) {
                         return;
                     }
                     if (rooms.length != 0) {
-                        res.send(rooms);
+                        res.send(JSON.stringify(rooms));
                         /*return;*/
                     }
                     return;

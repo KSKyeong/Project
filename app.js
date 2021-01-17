@@ -33,7 +33,10 @@
  - sign_up 시에, friend 컬렉션 자동 생성(local, facebook) -> user_id 속성값으로 _id 값을 넣어줌
  1/9
  - 프로필 보기, 친구 추가 및 삭제
+ 1/17
+ - Ajax 관련 이슈 피드백 -> socketio로 그냥 구현 or 프론트엔드 프레임워크 사용해보자.
  */
+
 
 var express =  require('express')
 	,http = require('http')
