@@ -68,9 +68,22 @@
 			overflow:auto;
 		}
         #roomsdisplay {
-            height:20em;
+            height:10em;
 			overflow:auto;
             padding: 1em;
+        }
+        #roomcontainer{
+            height:50em;
+			overflow: auto;
+            padding: 1em;
+        }
+        
+        /*.ui grid .ten wide column{
+            height: 50em;
+        }*/
+        
+        #roomgrid{
+            height:10em;
         }
 		
 		
@@ -473,14 +486,25 @@
             
 		    <!-- 방 목록 표시 -->
             <h4 class="ui horizontal divider header">채팅방 목록</h4>
-            <div class="ui segment" id="roomsdisplay">
-                
-                <ol class="rooms">
-                <div id="rooms"></div>
-                </ol>
-                
-            </div>
-		     
+            <div class="ui grid" id="roomcontainer">
+                <div class="ten wide column" id="roomgrid" >
+                    <div class="ui segment" id="roomsdisplay">
+
+                        <ol class="rooms">
+                        <div id="rooms"></div>
+                        </ol>
+
+                    </div>
+                </div>
+                <div class="six wide column" id="roomgrid">
+                    <div class="ui input">
+                        <input type="text" id="emailInput" value="asdf" />
+                    </div>
+
+                    <input class="ui primary button" type="button" id="loginButton" value="로그인" />
+                    <input class="ui primary button" type="button" id="logoutButton" value="로그아웃" />
+                </div>
+		    </div>
 		    <br>
 		    
             
