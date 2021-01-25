@@ -117,7 +117,9 @@ Schema.createSchema = function (mongoose) {
         getrooms: function (id, callback) {
             this.find({
                     'users.users_id': id
-                })
+                    }
+                    ,{updated_at:0, chats:0}
+                )
                 .populate('owner', 'name ')
                 .sort({
                     'created_at': -1

@@ -35,7 +35,10 @@
  - 프로필 보기, 친구 추가 및 삭제
  1/17
  - Ajax 관련 이슈 피드백 -> socketio로 그냥 구현 or 프론트엔드 프레임워크 사용해보자.
+ 1/22
+ - 
  */
+
 
 
 var express =  require('express')
@@ -79,6 +82,18 @@ var userPassport = require('./routes/user_passport_mongo');
 var socketio = require('socket.io')(server);
 var cors = require('cors');
 
+var sharedsession = require("express-socket.io-session");
+
+var sessionMiddleware = expressSession({
+    name: "User_cookie",
+    secret: "my key",
+    resave: true,
+    saveUninitialized: true,
+    store: new (require("connect-mongo")(expressSession))({
+        url: "mongodb://localhost:27017/local"
+    })
+});
+
 
 
 var app = express();
@@ -94,11 +109,12 @@ app.use(bodyParser.urlencoded({ extended: false}));
 app.use(bodyParser.json());
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
-app.use(expressSession({
+/*app.use(expressSession({
 	secret: 'my key',
 	resave: true,
 	saveUninitialized: true
-}));
+}));*/
+app.use(sessionMiddleware);
 
 //===passport 사용 설정===//
 app.use(passport.initialize());
@@ -157,6 +173,13 @@ console.log('socket.io 요청을 받을 준비가 됨');
 
 var login_ids = {};
 
+// 세션 관린 미들웨어
+io.use(sharedsession(sessionMiddleware, {autoSave:true}));
+/*io.use(function(socket, next){
+        // Wrap the express middleware
+        sessionMiddleware(socket.request, {}, next);
+    });*/
+
 
 // 클라이언트가 연결했을 때 이벤트 처리 - sockets 객체는 클라가 접속하거나 데이터를 전송했을 때, 이벤트 발생
 io.sockets.on('connection', function(socket) {
@@ -165,6 +188,10 @@ io.sockets.on('connection', function(socket) {
     //소켓 객체에 클라이언트 Host, Port 정보 속성으로 추가
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
+    
+    console.log(socket.handshake.session);
+    
+    
     
     
     
@@ -190,22 +217,38 @@ io.sockets.on('connection', function(socket) {
             if (!authenticated) { // 비밀번호 틀렸을 경우
                 console.log('비밀번호 일치하지 않음');
                 sendAlert(socket, 'login', '404', '로그인 실패');
+            } else {
+                // 정상인 경우 -> 인증 성공인 경우 (login list => [서버 실행 중 간이 DB] 에 정보 저장 ).
+                console.log('chating 서버에서 로그인 성공');
+
+                // 로그인 된 아이디들을 배열에 저장.
+                console.log('접속한 소켓의 ID(소켓 고유) : ' + socket.id);
+                login_ids[login.email] = socket.id;
+                socket.login_email = login.email;
+                console.log(login_ids);
+                socket.handshake.session.email = login.email;
+                socket.handshake.session.save();
+
+                console.log('로그인 한 전체 클라이언트의 수 : %d', Object.keys(login_ids).length);
+                
+                var statusObj = {message: '< ' +login.email + ' > 로그인 되었습니다.'};
+                // 사용자의 방 리스트들을 배열로 넘겨준다.
+                database.RoomModel.getrooms(user._doc._id, function(err, rooms) {
+                    if(err) {
+                        sendAlert(socket, 'login', '404', '채팅방 로딩 중 에러 발생!');
+                    }
+                    statusObj.rooms = rooms;
+                    //응답 메시지 전송
+                    socket.emit('logined', statusObj);
+                    return;
+                });
+                
+                return;
+                
+                
             }
-
-            // 정상인 경우 -> 인증 성공인 경우 (login list => [서버 실행 중 간이 DB] 에 정보 저장 ).
-            console.log('chating 서버에서 로그인 성공');
             
-            // 로그인 된 아이디들을 배열에 저장.
-            console.log('접속한 소켓의 ID(소켓 고유) : ' + socket.id);
-            login_ids[login.email] = socket.id;
-            socket.login_email = login.email;
-            console.log(login_ids);
-
-            console.log('로그인 한 전체 클라이언트의 수 : %d', Object.keys(login_ids).length);
             
-            //응답 메시지 전송
-            var statusObj = {message:'로그인 되었습니다.'};
-            socket.emit('logined', statusObj);
         });
         
         
@@ -214,6 +257,10 @@ io.sockets.on('connection', function(socket) {
     //message 이벤트 받았을 때 처리
     socket.on('message', function(message) {
         console.log('message 이벤트를 받았습니다');
+        console.log(socket.handshake.session);
+        console.dir(message);
+        message.sender = socket.handshake.session.email;
+        console.log('전송한 클라이언트 정보 추가 with session?');
         console.dir(message);
         
         if(message.recipient == 'ALL') {
@@ -242,11 +289,16 @@ io.sockets.on('connection', function(socket) {
     
     socket.on('logout', function(logout) {
         console.log('로그아웃을 진행합니다');
-        console.log(login_ids);
-        var logout_idx = logout.id
+        console.log(socket.handshake.session.email);
+        var logout_idx = socket.handshake.session.email;
         delete login_ids[logout_idx];
         console.log(login_ids);
-        sendResponse(socket, 'logout', '200', '로그아웃되었습니다.');
+        if (socket.handshake.session.email) {
+            delete socket.handshake.session.email;
+            socket.handshake.session.save();
+        }
+        var statusObj = {message:'로그아웃되었습니다.'};
+        socket.emit('logouted', statusObj);
            
     });
     
