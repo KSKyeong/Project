@@ -302,61 +302,111 @@ io.sockets.on('connection', function(socket) {
            
     });
     
-    // 클라이언트의 방 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
+    
+    
+    // 클라이언트의 방 입장, 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
+    // 기존 방에 새로운 클라나 기존 멤버가 들어왔을 때 알림 보여준다.
     socket.on('room', function(room) {
         
-        console.log('room 이벤트를 받았다.');
-        console.dir(room);
-        
-        
-//        console.dir(socket.rooms[login_ids[room.roomId]]);
-        
-        if(room.command === 'create') {
-            //io.sockets는 전체 연결된 객체의 정보 담고있음
-            if(io.sockets.adapter.rooms[room.roomId]) {
-                console.log('방이 이미 만들어져 있습니다.');
+        if(socket.handshake.session.email) { // 우선 클라이언트의 인증
+            console.log(socket.handshake.session);
+            
+            console.log('room 이벤트를 받았다.');
+            console.dir(room);
+            
+            var database = app.get('db');
+            var user_email = socket.handshake.session.email;
+            
+            
+            if (room.command === 'in') { // 방 입장 이벤트이다
                 
-            } else {
-                console.log('방을 새로 만듭니다.');
+                // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
+                if(room.roomName == "") {
+                    sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
+                    console.log('방 이름이 공백');
+                    return;
+                }
                 
-                socket.join(room.roomId);
-                console.log(io.sockets.sockets[room.roomId]);
-                console.log(io.sockets.allSockets());
-                //console.log(io.sockets.in(room.roomId));
+                // 방의 유무를 먼저 따진다
+                database.RoomModel.roomauth(room.roomName, function(err, result) {
+                    if(err) {
+                        sendError(socket, 'room', '404', '방 조회 중 오류 발생');
+                        return;
+                    }
+                    console.log('-----------');
+                    
+                    
+                    /*if(result == undefined) {
+                        sendAlert(socket, 'room', '404', '존재하지 않는 방 이름입니다.');
+                        return;
+                    } else */
+                    if(result.length > 0) { // 이름 일치하는 방이 있다.
+                        // 일치하는 방이 있으면? -> 방의 _id를 통해 join 하고, 방의 정보를 불러온다
+                        var room_id = result[0]._id;
+                        
+                        
+                        sendResponse(socket, 'room', '200', room.roomName + ' 입장 되었습니다.');
+                        return;
+                        
+                    } else {
+                        sendAlert(socket, 'room', '404', '존재하지 않는 방 이름입니다.');
+                        return;
+                    }
+                    
+                });
                 
-                /*var curRoom = io.sockets.adapter.rooms[room.roomId];
-                console.log(curRoom);
                 
+            } else if(room.command === 'create') {
+                //io.sockets는 전체 연결된 객체의 정보 담고있음
+                if(io.sockets.adapter.rooms[room.roomId]) {
+                    console.log('방이 이미 만들어져 있습니다.');
+
+                } else {
+                    console.log('방을 새로 만듭니다.');
+
+                    socket.join(room.roomId);
+                    console.log(io.sockets.sockets[room.roomId]);
+                    console.log(io.sockets.allSockets());
+                    //console.log(io.sockets.in(room.roomId));
+
+                    /*var curRoom = io.sockets.adapter.rooms[room.roomId];
+                    console.log(curRoom);
+
+                    curRoom.id = room.roomId;
+                    curRoom.name = room.roomName;
+                    curRoom.owner = room.roomOwner;*/
+                } 
+
+
+
+            } else if (room.command === 'update') {
+                var curRoom = io.sockets.adapter.rooms[room.roomId];
                 curRoom.id = room.roomId;
                 curRoom.name = room.roomName;
-                curRoom.owner = room.roomOwner;*/
-            } 
-        
-        
-        
-        } else if (room.command === 'update') {
-            var curRoom = io.sockets.adapter.rooms[room.roomId];
-            curRoom.id = room.roomId;
-            curRoom.name = room.roomName;
-            curRoom.owner = room.roomOwner;
-        } else if (room.command === 'delete') {
-            socket.leave(room.roomId);
-            
-            if(io.sockets.adapter.rooms[room.roomId]) {
-                delete io.sockets.adapter.rooms[room.roomId];
-            } else {
-                console.log('방이 만들어져 있지 않습니다');
+                curRoom.owner = room.roomOwner;
+            } else if (room.command === 'delete') {
+                socket.leave(room.roomId);
+
+                if(io.sockets.adapter.rooms[room.roomId]) {
+                    delete io.sockets.adapter.rooms[room.roomId];
+                } else {
+                    console.log('방이 만들어져 있지 않습니다');
+                }
             }
+            
+            
+        } else {
+            sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
         }
         
-        // room 이벤트를 처리하고 난 후 현재 방 리스트를 클라에게 보내준다.
+        /*// room 이벤트를 처리하고 난 후 현재 방 리스트를 클라에게 보내준다.
         var roomList = getRoomList();
         
         var output = {command : 'list', rooms : roomList};
         console.log('클라이언트로 보낼 데이터 : ' + JSON.stringify(output));
         
         // 모든 연결 소켓 객체들에게 room 이벤트 전달.
-        io.sockets.emit('room', output);
+        io.sockets.emit('room', output);*/
     })
     
 })

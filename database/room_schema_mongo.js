@@ -140,6 +140,14 @@ Schema.createSchema = function (mongoose) {
                 }, {_id : 1})
                 .exec(callback);
         },
+        
+        roomauth: function (roomname ,callback) {
+            this.find({
+                    'name': roomname
+                }, {_id : 1})
+                .exec(callback);
+        },
+        
         viewupdate: function (id, callback) {
             this.updateOne({
                     _id: id
