@@ -171,7 +171,8 @@ var server = http.createServer(app).listen(app.get('port'), function() {
 var io = socketio.listen(server);
 console.log('socket.io 요청을 받을 준비가 됨');
 
-var login_ids = {};
+let login_ids = {};
+let room_ids = {};
 
 // 세션 관린 미들웨어
 io.use(sharedsession(sessionMiddleware, {autoSave:true}));
@@ -200,7 +201,7 @@ io.sockets.on('connection', function(socket) {
         console.log('login 이벤트를 받았습니다.');
         console.dir(login); // id와 비밀번호의 정보가 담겨있다.
         var database = app.get('db');
-        database.UserModel.findOne({'email' : login.email}, function(err, user) {
+        database.UserModel.findByEmail(login.email, function(err, user) {
             if(err) {
                 sendAlert(socket, 'login', '404', '사용자 인증 과정 중 에러 발생!');
             }
@@ -210,9 +211,10 @@ io.sockets.on('connection', function(socket) {
                 sendAlert(socket, 'login', '404', '입력된 email 과 일치하는 사용자 정보가 없다.');
                 return;
             }
-            console.dir(user._doc);
+            console.dir('--------------=-==============-=-=-==');
+            console.log(user[0]._doc._id);
 
-            var authenticated = user.authenticate(login.password, user._doc.salt, user._doc.hashed_password);
+            var authenticated = user[0].authenticate(login.password, user[0]._doc.salt, user[0]._doc.hashed_password);
 
             if (!authenticated) { // 비밀번호 틀렸을 경우
                 console.log('비밀번호 일치하지 않음');
@@ -227,13 +229,14 @@ io.sockets.on('connection', function(socket) {
                 socket.login_email = login.email;
                 console.log(login_ids);
                 socket.handshake.session.email = login.email;
+                socket.handshake.session._id = user[0]._doc._id;
                 socket.handshake.session.save();
 
                 console.log('로그인 한 전체 클라이언트의 수 : %d', Object.keys(login_ids).length);
                 
                 var statusObj = {message: '< ' +login.email + ' > 로그인 되었습니다.'};
                 // 사용자의 방 리스트들을 배열로 넘겨준다.
-                database.RoomModel.getrooms(user._doc._id, function(err, rooms) {
+                database.RoomModel.getrooms(user[0]._doc._id, function(err, rooms) {
                     if(err) {
                         sendAlert(socket, 'login', '404', '채팅방 로딩 중 에러 발생!');
                     }
@@ -293,8 +296,9 @@ io.sockets.on('connection', function(socket) {
         var logout_idx = socket.handshake.session.email;
         delete login_ids[logout_idx];
         console.log(login_ids);
-        if (socket.handshake.session.email) {
+        if (socket.handshake.session.email || socket.handshake.session._id) {
             delete socket.handshake.session.email;
+            delete socket.handshake.session._id;
             socket.handshake.session.save();
         }
         var statusObj = {message:'로그아웃되었습니다.'};
@@ -308,7 +312,7 @@ io.sockets.on('connection', function(socket) {
     // 기존 방에 새로운 클라나 기존 멤버가 들어왔을 때 알림 보여준다.
     socket.on('room', function(room) {
         
-        if(socket.handshake.session.email) { // 우선 클라이언트의 인증
+        if(socket.handshake.session.email && socket.handshake.session._id) { // 우선 클라이언트의 인증 (세션 유무)
             console.log(socket.handshake.session);
             
             console.log('room 이벤트를 받았다.');
@@ -316,6 +320,7 @@ io.sockets.on('connection', function(socket) {
             
             var database = app.get('db');
             var user_email = socket.handshake.session.email;
+            var user_id = socket.handshake.session._id;
             
             
             if (room.command === 'in') { // 방 입장 이벤트이다
@@ -336,15 +341,53 @@ io.sockets.on('connection', function(socket) {
                     console.log('-----------');
                     
                     
-                    /*if(result == undefined) {
-                        sendAlert(socket, 'room', '404', '존재하지 않는 방 이름입니다.');
-                        return;
-                    } else */
                     if(result.length > 0) { // 이름 일치하는 방이 있다.
                         // 일치하는 방이 있으면? -> 방의 _id를 통해 join 하고, 방의 정보를 불러온다
-                        var room_id = result[0]._id;
+                        console.log('일치하는 방을 찾음');
+                        var room_id = result[0]._doc._id;
+                        // 
+                        room_ids[user_id] = room_id;
+                        console.log(room_ids);
+                        socket.join(room_id); // join
+                        console.log('room_id : ' + room_id + ' , user_id : ' + user_id);
                         
-                        
+                        // 새로운 참가자는 room 컬렉션에 id 넣어주고, 원래 있던 사람은 무시?
+                        // addToSet 함수를 사용할 때, 갱신되는 문제점 발생 -> 배열 내에 값이 중복되면 무시하는 방법 생각해야함
+                        database.RoomModel.usersupdate(room_id, user_id, function(err, result) {
+                            if(err || !result) {
+                                sendError(socket, 'room', '404', '유저 정보 업데이트 중 오류 발생');
+                                return;
+                            }
+                            console.log('확인 해보기');
+                            console.dir(result);
+                            
+                            // 수정이 되면, 방의 채팅 내용, 방장, 사용자 정보 함께 반환.
+                            if(result) {
+                                console.log('조회 및 채팅 내용 반환 할 차례');
+                                database.RoomModel.loadroom(room_id, function(err, room_init) {
+                                   if(err || !room_init) {
+                                        sendError(socket, 'room', '404', '방 정보 불러오는 중 오류 발생');
+                                        return;
+                                    }
+                                    console.dir(room_init._doc);
+                                    if(room_init) {
+                                        var output1 = {command : 'init', room_init : room_init,  };
+                                        console.log('클라이언트로 보낼 데이터 : ');
+                                        console.dir(JSON.stringify(output1));
+                                        // 같은 방 소켓 객체들에게 room 이벤트 전달.
+                                        socket.to(login_ids[user_email]).emit('room', output1);
+                                        
+                                        var output2 = {command : 'in', message : user_email + ' 님 접속!'};
+                                        socket.to(room_ids[user_id]).emit('room', output2);
+                                        return;
+                                    }
+                                    
+                                });
+                                
+                                return;
+                            }
+                        });
+                      
                         sendResponse(socket, 'room', '200', room.roomName + ' 입장 되었습니다.');
                         return;
                         

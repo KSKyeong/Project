@@ -21,18 +21,13 @@ Schema.createSchema = function (mongoose) {
                 type: mongoose.Schema.ObjectId,
                 ref: 'users'
             },
-            users_email: {
-                type: String,
-                'default': '',
-                required: true
-            },
             created_at: {
                 type: Date,
                 'default': Date.now
             }
 	    }],
         chats: [{ // 채팅 기록
-            writer: {
+            writer_id: {
                 type: mongoose.Schema.ObjectId,
                 ref: 'users'
             },
@@ -148,49 +143,20 @@ Schema.createSchema = function (mongoose) {
                 .exec(callback);
         },
         
-        viewupdate: function (id, callback) {
+        // 방의 구성원 정보를 추가 해준다.
+        usersupdate: function (room_id, user_id, callback) {
             this.updateOne({
-                    _id: id
+                    _id: room_id
                 }, {
-                    $inc: {
-                        views: 1
-                    }
-                })
-                .exec(callback);
-        },
-        commentsupdate: function (id, comment, writer, callback) {
-            this.updateOne({
-                    _id: id
-                }, {
-                    $push: {
-                        comments: {
-                            contents: comment,
-                            writer: writer
+                    $addToSet: {
+                        users: {
+                            users_id: user_id
                         }
                     }
-                })
-                .exec(callback);
-        },
-        // 수정 필요, 인스턴스 객체로 먼저 해보자
-        commentsdelete: function (comment_id, post_id, callback) {
-            this.updateOne({
-                    _id: post_id
-                }, {
-                    $pull: {
-                        'comments': {
-                            _id: comment_id
-                        }
-                    }
-                })
-                .exec(callback);
-        },
-        // 게시글 삭제 위한 static 함수
-        postdelete: function (del_post_id, callback) {
-            this.deleteOne({
-                    _id: del_post_id
                 })
                 .exec(callback);
         }
+        
     }
 
     console.log('RoomSchema 정의함.');
