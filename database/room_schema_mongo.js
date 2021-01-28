@@ -143,19 +143,37 @@ Schema.createSchema = function (mongoose) {
                 .exec(callback);
         },
         
-        // 방의 구성원 정보를 추가 해준다.
-        usersupdate: function (room_id, user_id, callback) {
-            this.updateOne({
+        // 방의 구성원 정보를 삭제 해준다. -> 삭제 후 추가 (새로운 값 갱신)
+        userspull: function (room_id, user_id, callback) {
+            this.updateMany({
                     _id: room_id
                 }, {
-                    $addToSet: {
+                    $pull: {
                         users: {
                             users_id: user_id
                         }
                     }
-                })
+                }/*,
+                { upsert: true }*/)
                 .exec(callback);
-        }
+        },
+        
+        // 방의 구성원 정보를 추가 해준다.
+        userspush: function (room_id, user_id, callback) {
+            this.updateOne({
+                    _id: room_id
+                }, {
+                    $push: {
+                        users: {
+                            users_id: user_id
+                        }
+                    }
+                }/*,
+                { upsert: true }*/)
+                .exec(callback);
+        },
+        
+        
         
     }
 
