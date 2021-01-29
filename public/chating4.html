@@ -72,12 +72,6 @@
 			overflow:auto;
             padding: 1em;
         }
-        
-        #alarmsdisplay {
-            height:10em;
-			overflow:auto;
-            padding: 1em;
-        }
         #roomcontainer{
             height:50em;
 			overflow: auto;
@@ -89,10 +83,6 @@
         }*/
         
         #roomgrid{
-            height:10em;
-        }
-        
-        #alarmgrid{
             height:10em;
         }
         
@@ -125,13 +115,6 @@
 		}
 		
         .rooms {
-		  	list-style: none;
-		  	background: #d4efff;
-		  	margin: 0;
-		  	padding: 10 0 0px 0;
-		}
-        
-        .alarms {
 		  	list-style: none;
 		  	background: #d4efff;
 		  	margin: 0;
@@ -470,7 +453,7 @@
             
 			function println(data) {
 				console.log(data);
-				$('#alarms').append('<p>' + data + '</p>');
+				$('#result').append('<p>' + data + '</p>');
 			}
             
             function listrooms(room) {
@@ -605,26 +588,13 @@
             
 		    <!-- 결과 표시 -->
 		    <h4 class="ui horizontal divider header">메시지</h4><br>
-            <div class="ui grid">
-                <div class="six wide column">
-                    <div class="ui center aligned grid">
-                        <div id="curRoom">
-
-                        </div>
-                    </div>
-                </div>
-                <div class="ten wide column">
-                    <div class="ui segment" id="alarmsdisplay">
-                        
-                            <ol class="alarms">
-                                <div id="alarms"></div>
-                            </ol>
-                        
-                    </div>
+            <div class="ui center aligned grid">
+                <div id="curRoom">
+                    
                 </div>
             </div>
             
-			<!--<div class="ui segment" id="result"> -->
+			<div class="ui segment" id="result"> 
                 <!-- 이전 채팅 불러오기 -->
 			  <ol class="discussion" id="chat_init"></ol> 
                 <!-- 전송하기 -->

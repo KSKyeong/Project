@@ -124,8 +124,8 @@ Schema.createSchema = function (mongoose) {
         loadroom: function (id, callback) {
 
             this.findOne({_id : id})
-                .populate('chats.writer_id', 'name _id')
-                .populate('owner', 'name')                
+                .populate('chats.writer_id', 'name _id email')
+                .populate('owner', 'name email')                
                 .exec(callback);
         },
         // 사용자가 들어있는 방들의 obj 아이디 값만 리턴 -> 요청 함수에서 판단

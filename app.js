@@ -344,7 +344,7 @@ io.sockets.on('connection', function(socket) {
                     if(result.length > 0) { // 이름 일치하는 방이 있다.
                         // 일치하는 방이 있으면? -> 방의 _id를 통해 join 하고, 방의 정보를 불러온다
                         console.log('일치하는 방을 찾음');
-                        var room_id = result[0]._doc._id;
+                        var room_id = result[0]._doc._id.toString(); //ObjectID -> String
                         // 
                         room_ids[user_id] = room_id;
                         console.log(room_ids);
@@ -386,10 +386,11 @@ io.sockets.on('connection', function(socket) {
                                             // 같은 방 소켓 객체들에게 room 이벤트 전달.
                                             /*socket.to(login_ids[user_email]).emit('room', output1);*/
                                             socket.emit('room', output1);
-
-                                            /*var output2 = {command : 'in', message : user_email + ' 님 접속!'};
-                                            socket.to(room_ids[user_id]).emit('room', output2);
-                                            return;*/
+                                            
+                                            // 접속해있는 다른 사용자에게 알림 준다?
+                                            var output2 = {command : 'in', message : user_email + ' 님 접속!'};
+                                            io.sockets.in(room_id).emit('room', output2);
+                                            return;
                                         }
 
                                     });
