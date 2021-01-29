@@ -105,7 +105,7 @@
 		}
 		
 		.discussion .avatar {
-		  	width: 40px;
+		  	width: 60px;
 		  	position: relative;
 		}
 		
@@ -139,6 +139,11 @@
 		  	border-left-color: transparent;
 		  	border-bottom-color: transparent;
 		}
+        
+        /*.other .avatar img{
+		  	width: 60px;
+            height: auto;
+		}*/
 		
 		.self {
 		  	justify-content: flex-end;
@@ -367,8 +372,8 @@
                 socket = io.connect(url, options);
 
                 socket.on('connect', function() {
-                    deleteAll();
-                	println('웹소켓 서버에 연결되었습니다. : ' + url);
+//                    deleteAll();
+                	
                     alert('채팅 서버에 연결 되었습니다');
                     
                     socket.on('logined', function(message) {
@@ -388,7 +393,7 @@
                         console.log(JSON.stringify(message));
                         alert('' + message.message);
                         deleteAll();
-                        window.location.href = '/public/chating2.html';
+                        window.location.href = '/public/chating3.html';
                         
                     });
 
@@ -437,7 +442,7 @@
                     println('웹소켓 연결이 종료되었습니다.');
                     alert('웹소켓 연결이 종료되었습니다.');
                     alert('다시 로그인 해주세요.');
-                    window.location.href = '/public/chating2.html';
+                    window.location.href = '/public/chating3.html';
                 });
 
             }
@@ -457,6 +462,7 @@
         
             function curRoom(name) {
                 $('#curRoom *').remove();
+                $('#chat_init *').remove();
 				console.log(name);
 				$('#curRoom').append('<p>' + name + '</p><input type="hidden" id="curRoomName" value="' + name + '">');
                 
@@ -466,23 +472,18 @@
             // 방 목록 및, 채팅 기록들 지워주는 함수
             function deleteAll() {
 				console.log('deletAll 호출됨');
-				$('#result *').remove();
+				/*$('#result *').remove();*/
                 $('#rooms *').remove();
                 $('#curRoom *').remove();
+                $('#chat_init *').remove();
 			}
         
-            function initChats(chats, user_id) {
+            /*function initChats(chats, user_id) {
                 chats.forEach(function(chat) {
-                    
-                    if(chat.writer_id._id == user_id) {
-                        $('#result').append('<li class="other">');
-                    } else {
-                        $('#result').append('<li class="self">');
-                    }
-                    $('#result').append('<div class="avatar">' + '<img src="/public/images/' + chat.writer_id._id +  '.png" /></div><div class="messages"><p>' + chat.content + '</p><time>' + chat.created_at + '</time></div></li>');
-                });
-                /*
-                <li class="self">
+                    if(chat)
+                })
+                
+                <li class="other">
 			      <div class="avatar">
 			        <img src="/public/images/user2.png" />
 			      </div>
@@ -490,7 +491,20 @@
 			        <p>어디쯤이야? 다들 기다리고 있어.</p>
 			        <time datetime="2016-02-10 18:10">18시 10분</time>
 			      </div>
-			    </li>*/
+			    </li>
+            }*/
+        
+            function initChats(chats, user_id) {
+                chats.forEach(function(chat) {
+                    console.log(chat.writer_id._id + ', '+ user_id);
+                    if(chat.writer_id._id != user_id) {
+                        $('#chat_init').append('<li class="other">' + '<div class="avatar"><p>' + chat.writer_id.name + '</p><img src="/public/images/' + chat.writer_id._id +  '.png" /></div><div class="messages"><p>' + chat.content + '</p><time>' + chat.created_at + '</time></div></li>');
+                    } else {
+                        $('#chat_init').append('<li class="self">' + '<div class="avatar"><p>' + chat.writer_id.name + '</p><img src="/public/images/' + chat.writer_id._id +  '.png" /></div><div class="messages"><p>' + chat.content + '</p><time>' + chat.created_at + '</time></div></li>');
+                    }
+                    
+                });
+                
             }
         
 		  
@@ -576,15 +590,13 @@
 		    <h4 class="ui horizontal divider header">메시지</h4><br>
             <div class="ui center aligned grid">
                 <div id="curRoom">
-                    <p>채팅방10</p>
-                    <input type="hidden" id="curRoomName" value="">
+                    
                 </div>
             </div>
             
-			<div class="ui segment" >                
-			  <ol class="discussion">
-                    <div id="result"></div>
-			  </ol>
+			<div class="ui segment" id="result"> 
+                <!-- 이전 채팅 불러오기 -->
+			  <ol class="discussion" id="chat_init"></ol> 
                 <!-- 전송하기 -->
                 
 			</div>

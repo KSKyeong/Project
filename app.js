@@ -349,7 +349,7 @@ io.sockets.on('connection', function(socket) {
                         room_ids[user_id] = room_id;
                         console.log(room_ids);
                         socket.join(room_id); // join
-                        console.log('room_id : ' + room_id + ' , user_id : ' + user_id);
+                        console.log('user_id : ' + user_id  + ' joined --> room_id : ' + room_id );
                         
                         // 새로운 참가자는 room 컬렉션에 id 넣어주고, 원래 있던 사람은 무시?
                         // addToSet 함수를 사용할 때, 갱신되는 문제점 발생 -> 배열 내에 값이 중복되면 무시하는 방법 생각해야함 upsert 다시 확인
@@ -380,15 +380,16 @@ io.sockets.on('connection', function(socket) {
                                         }
                                         /*console.dir(room_init._doc);*/
                                         if(room_init) {
-                                            var output1 = {command : 'init', room_init : room_init,  };
+                                            var output1 = {command : 'init', room_init : room_init, user_id : user_id };
                                             console.log('클라이언트로 보낼 데이터 : ');
                                             console.dir(JSON.stringify(output1));
                                             // 같은 방 소켓 객체들에게 room 이벤트 전달.
-                                            socket.to(login_ids[user_email]).emit('room', output1);
+                                            /*socket.to(login_ids[user_email]).emit('room', output1);*/
+                                            socket.emit('room', output1);
 
-                                            var output2 = {command : 'in', message : user_email + ' 님 접속!'};
+                                            /*var output2 = {command : 'in', message : user_email + ' 님 접속!'};
                                             socket.to(room_ids[user_id]).emit('room', output2);
-                                            return;
+                                            return;*/
                                         }
 
                                     });
