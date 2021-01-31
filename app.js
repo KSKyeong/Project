@@ -259,31 +259,110 @@ io.sockets.on('connection', function(socket) {
     
     //message 이벤트 받았을 때 처리
     socket.on('message', function(message) {
-        console.log('message 이벤트를 받았습니다');
-        console.log(socket.handshake.session);
-        console.dir(message);
-        message.sender = socket.handshake.session.email;
-        console.log('전송한 클라이언트 정보 추가 with session?');
-        console.dir(message);
         
-        if(message.recipient == 'ALL') {
-            //나를 포함한 모든 클라에게 메시지 전달
-            console.log('나를 포함한 모든 클라에게 message 이벤트를 전송합니다.');
+        // 인증 후
+        if(socket.handshake.session.email && socket.handshake.session._id) {
             
-            io.sockets.emit('message', message);
-        } else {
-            if(login_ids[message.recipient]) {
-                     
-                // io.sockets[login_ids[message.recipient]].emit('message', message); 
-//                -> socket.io 버전 문제로 수정
-                socket.to(login_ids[message.recipient]).emit('message', message);
-                //응답 메시지 전송
-                sendResponse(socket, 'message', '200', '메시지를 전송했습니다.');
-            } else {
-                //보내고자 하는 클라가 로그인 하지 않았을 때.
-                sendResponse(socket, 'login', '404', '상대방의 로그인 ID를 찾을 수가 없습니다.');
+            console.log('message 이벤트를 받았습니다');
+            console.log(socket.handshake.session);
+            if(message.data == "") {
+                sendAlert(socket, 'message', '404', '내용을 입력하세요!');
+                return;
             }
-       } 
+            
+            /*message.sender = socket.handshake.session.email;*/
+            var database = app.get('db');
+            console.dir(message);
+            message.sender = socket.handshake.session.email;
+            message.sender_id = socket.handshake.session._id;
+            console.dir(message);
+            var sender_id = socket.handshake.session._id;
+            var room_id = room_ids[sender_id];
+            /*console.log(room_id);*/
+            
+            // 1. 받은 메시지 내용을 DB에 저장
+            database.RoomModel.findOneAndUpdate({_id:room_id},
+                {'$push': 
+                    {chats: {
+                            writer_id: sender_id,
+                            content: message.data
+                        }
+                    }
+                },
+                {'new':true, 'upsert':true}, function(err, result) {
+                if (err) {
+                    console.error('메시지 DB 추가 중 에러 발생 : ' + err.stack);
+                    sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
+                    return;
+                }
+                console.log('-----------');
+                if(result._doc.chats){
+
+                    var idx = result._doc.chats.length - 1;
+                    console.dir(idx);
+                    if(result._doc.chats[idx]._doc._id) {
+                        var newChatId = result._doc.chats[idx]._doc._id;
+                        console.log(newChatId);
+                        // 2. 방 내의 클라이언트들에게 이벤트 발생
+                        // 새로 추가 된 메시지 정보 받기
+                        database.RoomModel.newchat(room_id, newChatId, function(err, chat) {
+                            if (err) {
+                                console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
+                                sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
+                                return;
+                            }
+                            
+                            if(chat._doc.chats[0]._doc) {
+                                
+                                socket.emit('message', {data: chat._doc.chats[0]._doc, self: true});
+                                socket.to(room_id).emit('message', {data: chat._doc.chats[0]._doc, self: false});
+                            }
+                            return;
+                        });
+                        return;
+
+                    } else {
+                        console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
+                        sendError(socket, 'message', '404', '메시지 저장 실패');
+                        return;
+                    }
+
+
+                } else {
+                    console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
+                    sendError(socket, 'message', '404', '메시지 저장 실패');
+                    return;
+                }  
+            });
+            
+            /*database.RoomModel.addchats(room_id, message.data, sender_id, function(err, result) {
+                if(err) {
+                    sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
+                    return;
+                }
+                console.log('-----------');
+                console.dir(result);
+                
+                if(result.nModified == 1) {
+                    // 2. 방 내의 클라이언트들에게 이벤트 발생
+                    message.self = false;
+                    socket.to(room_id).emit('message', message);
+                    message.self = true;
+                    socket.emit('message', message);
+                    return;
+                } else {
+                    sendError(socket, 'room', '404', '방 정보 업데이트 중 오류 발생');
+                    return;
+                }
+                    
+            });*/
+            return;
+            
+        } else {
+            sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
+        }
+        
+         
         
     });
     
@@ -462,56 +541,10 @@ io.sockets.on('connection', function(socket) {
             sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
         }
         
-        /*// room 이벤트를 처리하고 난 후 현재 방 리스트를 클라에게 보내준다.
-        var roomList = getRoomList();
-        
-        var output = {command : 'list', rooms : roomList};
-        console.log('클라이언트로 보낼 데이터 : ' + JSON.stringify(output));
-        
-        // 모든 연결 소켓 객체들에게 room 이벤트 전달.
-        io.sockets.emit('room', output);*/
     })
     
 })
 
-// 사용자가 추가한 room 정보만 리스트를 만들어 반환 해주는 함수
-function getRoomList() {
-    console.log('getRoomList 호출됨');
-    /*console.log(io.sockets);
-    console.log(io.sockets.sockets);
-    console.dir(io.sockets.adapter.rooms);*/
-//    console.log(io.sockets.in());
-    console.dir(Object.keys(io.sockets.adapter.rooms)); 
-    
-    var roomList = [ ];
-    
-    Object.keys(io.sockets.adapter.rooms).forEach(function(roomId) {
-        console.log('current room id : ' + roomId);
-        var outRoom = io.sockets.adapter.rooms[roomId];
-        
-        var foundDefault = false;
-        var index = 0;
-        Object.keys(outRoom.sockets).forEach(function(key) {
-            console.log('#' + index + ' : ' + key + ', ' + outRoom.sockets[key]);
-            
-            
-            if(roomId == key) { // default room
-                foundDefault = true;
-                console.log('this is dafault room.');
-            }
-            index++;
-        });
-        
-        if(!foundDefault) {
-            roomList.push(outRoom);
-        }
-    });
-    
-    console.log('[Room List]');
-    console.dir(roomList);
-    
-    return roomList;
-}
 
 
 function sendResponse(socket, command, code, message) {

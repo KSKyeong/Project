@@ -14,7 +14,7 @@ function connect(app, config) {
 	
 	// 데이터베이스 연결 (몽구스 모듈을 활용한 데베 연결임)
 	mongoose.Promise = global.Promise;
-	mongoose.connect(config.db_url);
+	mongoose.connect(config.db_url, { useFindAndModify: false });
 	database.db = mongoose.connection;
 	
 	database.db.on('open', function() {

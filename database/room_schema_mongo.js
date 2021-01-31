@@ -63,7 +63,7 @@ Schema.createSchema = function (mongoose) {
 
     // 스키마에 인스턴스 메소드 추가
     RoomSchema.methods = {
-        savePost: function (callback) { // 글 저장
+        saveRoom: function (callback) { // 글 저장
             var self = this;
 
             this.validate(function (err) {
@@ -72,10 +72,10 @@ Schema.createSchema = function (mongoose) {
                 self.save(callback);
             });
         },
-        addComment: function (user, comment, callback) { // 댓글 추가
-            this.comment.push({
-                contents: comment.contents,
-                writer: user._id
+        addChats: function (user_id, content, callback) { // 댓글 추가
+            this.chats.push({
+                'chats.writer_id': user_id,
+                'chats.content': content
             });
 
             this.save(callback);
@@ -123,7 +123,9 @@ Schema.createSchema = function (mongoose) {
         },
         loadroom: function (id, callback) {
 
-            this.findOne({_id : id})
+            this.findOne({
+                    _id : id
+                }, {'users._id' : 0, 'users.created_at' : 0})
                 .populate('chats.writer_id', 'name _id email')
                 .populate('owner', 'name email')                
                 .exec(callback);
@@ -172,6 +174,28 @@ Schema.createSchema = function (mongoose) {
                 { upsert: true }*/)
                 .exec(callback);
         },
+        
+        addchats: function (room_id, data, writer_id ,callback) { // 댓글 추가
+            this.updateOne({
+                    _id: room_id
+                }, {
+                    $push: {
+                        chats: {
+                            writer_id: writer_id,
+                            content: data
+                        }
+                    }
+                })
+                .exec(callback);
+        },
+        
+        newchat: function (room_id, chat_id, callback) { // 댓글 추가
+            this.findOne({
+                    _id: room_id, 'chats._id': chat_id
+                },{ chats: {$elemMatch: {_id: chat_id}}})
+                .populate('chats.writer_id', 'name _id email')
+                .exec(callback);
+        }
         
         
         

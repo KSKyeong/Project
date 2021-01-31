@@ -32,7 +32,7 @@
 		}
 				
 		.container {
-			width:100%;
+			width:98%;
 			height:100%;
 			display:flex;
 			flex-flow:column wrap;
@@ -41,8 +41,8 @@
 		}
 
 		#cardbox {
-			width:94%;
-			height:140%;
+			width:98%;
+			height:120%;
             
 			padding-left:0.4em;
 			padding-right:0.4em;
@@ -67,10 +67,6 @@
 			height:100em;
 			overflow:auto;
 		}
-        #alarm {
-			height:10em;
-			overflow:scroll;
-		}
         #roomsdisplay {
             height:10em;
 			overflow:auto;
@@ -82,21 +78,11 @@
             padding: 1em;
         }
         
-        #alarmcontainer{
-            height:60em;
-			overflow: hidden;
-            /*padding: 1em;*/
-        }
-        
         /*.ui grid .ten wide column{
             height: 50em;
         }*/
         
         #roomgrid{
-            height:10em;
-        }
-        
-        #alarmgrid{
             height:10em;
         }
         
@@ -258,14 +244,10 @@
 				// 전송 버튼 클릭 시 처리
                 $("#sendButton").on('click', function(event) {
                 	
-                	// chattype 구분
-                	var chattype = $('#chattype option:selected').val();
-
-                	/*var sender = $('#senderInput').val();*/
-                    var recipient = $('#recipientInput').val();
+                	
                     var data = $('#dataInput').val();
-
-                    var output = {recipient:recipient, command:chattype, type:'text', data:data};
+                    
+                    var output = {data:data};
                     console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
                 	
                     if (socket == undefined) {
@@ -407,14 +389,15 @@
                         console.log(JSON.stringify(message));
                         alert('' + message.message);
                         deleteAll();
-                        window.location.href = '/public/chating3.html';
+                        window.location.href = '/public/chating5.html';
                         
                     });
 
                     socket.on('message', function(message) {
                         console.log(JSON.stringify(message));
+                        // 날아오는 데이터 {data : 객체, self : 자신이 전송한 메시지인가 구분자}
 
-                        println('<p>수신 메시지 : ' + message.sender + ', ' + message.recipient + ', ' + message.command + ', ' + message.data + '</p>');
+                        println('<p>수신 메시지 : ' + message.sender + ', ' + message.sender_id + ', ' + message.data + '</p>');
                     });
 
                     socket.on('response', function(response) {
@@ -456,7 +439,7 @@
                     println('웹소켓 연결이 종료되었습니다.');
                     alert('웹소켓 연결이 종료되었습니다.');
                     alert('다시 로그인 해주세요.');
-                    window.location.href = '/public/chating3.html';
+                    window.location.href = '/public/chating5.html';
                 });
 
             }
@@ -467,7 +450,18 @@
             
 			function println(data) {
 				console.log(data);
-				$('#alarm').append('<p>' + data + '</p>');
+				$('#chat_init').append('<li>' + data + '</li>');
+			}
+            
+            // 새로 받은 메시지 처리 함수?
+            function printmessage(message) {
+				console.log(message);
+				
+                if(!message.self) {
+                    $('#chat_init').append('<li class="other">' + '<div class="avatar"><h10>' + message.sender + '</h10><img src="/public/images/' + message.sender_id +  '.png" /></div><div class="messages"><p>' + message.data + '</p><time>' + chat.created_at + '</time></div></li>');
+                } else {
+                    $('#chat_init').append('<li class="self">' + '<div class="avatar"><h10>' + chat.writer_id.name + '</h10><h10>' + chat.writer_id.email + '</h10><img src="/public/images/' + chat.writer_id._id +  '.png" /></div><div class="messages"><p>' + chat.content + '</p><time>' + chat.created_at + '</time></div></li>');
+                }
 			}
             
             function listrooms(room) {
@@ -491,22 +485,6 @@
                 $('#curRoom *').remove();
                 $('#chat_init *').remove();
 			}
-        
-            /*function initChats(chats, user_id) {
-                chats.forEach(function(chat) {
-                    if(chat)
-                })
-                
-                <li class="other">
-			      <div class="avatar">
-			        <img src="/public/images/user2.png" />
-			      </div>
-			      <div class="messages">
-			        <p>어디쯤이야? 다들 기다리고 있어.</p>
-			        <time datetime="2016-02-10 18:10">18시 10분</time>
-			      </div>
-			    </li>
-            }*/
         
             function initChats(chats, user_id) {
                 chats.forEach(function(chat) {
@@ -602,32 +580,20 @@
             
 		    <!-- 결과 표시 -->
 		    <h4 class="ui horizontal divider header">메시지</h4><br>
-            <div class="ui grid" id="alarmcontainer">
-                <div class="six wide column" id="alarmgrid">
-                    <div id="curRoom">
+            <div class="ui center aligned grid">
+                <div id="curRoom">
                     
-                    </div>
                 </div>
-                <div class="ten wide column" id="alarmgrid">
-                    <div id="alarm">
-                    
-                    </div>
-                </div>
-                
             </div>
-            <br>
             
-			<!--<div class="ui segment" id="result">--> 
+			<div class="ui segment" id="result"> 
                 <!-- 이전 채팅 불러오기 -->
-            <div class="ui segment">
-                <ol class="discussion" id="chat_init"></ol>
-            </div>
-			   
+			  <ol class="discussion" id="chat_init"></ol> 
                 <!-- 전송하기 -->
                 
-			<!--</div>-->
-            <div
-            <div class="eight wide column">
+			</div>
+            
+            <div class="eight wide columns">
 		    <div class="center floated right aligned">
                 <br>
                 <div class="center floated right aligned">
@@ -651,4 +617,3 @@
 
 </body>
 </html>
-
