@@ -313,8 +313,10 @@ io.sockets.on('connection', function(socket) {
                             }
                             
                             if(chat._doc.chats[0]._doc) {
-                                
+                                // 메시지 전송한 클라이언트에게 자신이 보낸 메시지 알림
                                 socket.emit('message', {data: chat._doc.chats[0]._doc, self: true});
+                                
+                                // room 안의 클라이언트들에게 broadcast 전송
                                 socket.to(room_id).emit('message', {data: chat._doc.chats[0]._doc, self: false});
                             }
                             return;
@@ -366,9 +368,6 @@ io.sockets.on('connection', function(socket) {
         
     });
     
-    
-    
-    
     socket.on('logout', function(logout) {
         console.log('로그아웃을 진행합니다');
         console.log(socket.handshake.session.email);
@@ -384,8 +383,6 @@ io.sockets.on('connection', function(socket) {
         socket.emit('logouted', statusObj);
            
     });
-    
-    
     
     // 클라이언트의 방 입장, 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
     // 기존 방에 새로운 클라나 기존 멤버가 들어왔을 때 알림 보여준다.
@@ -525,25 +522,77 @@ io.sockets.on('connection', function(socket) {
                 curRoom.owner = room.roomOwner;
             } 
             
-            else if (room.command === 'delete') {
-                socket.leave(room.roomId);
-
-                if(io.sockets.adapter.rooms[room.roomId]) {
-                    delete io.sockets.adapter.rooms[room.roomId];
-                } else {
-                    console.log('방이 만들어져 있지 않습니다');
+            else if (room.command === 'out') {
+                
+                // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
+                if(room.roomName == "") {
+                    sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
+                    console.log('방 이름이 공백');
+                    return;
                 }
+                // 1. 방의 유무 확인
+                database.RoomModel.roomauth(room.roomName, function(err, result) {
+                    
+                    if(err) {
+                        sendError(socket, 'room', '404', '방 조회 중 오류 발생');
+                        return;
+                    }
+                    
+                    if(result.length > 0) { // 일치하는 방이 있다면?
+                        var room = result[0]._doc;
+                        console.dir(result[0]._doc);
+                        console.log('방장:' + room.owner + '--> ' + user_id);
+                        console.log(room.owner == user_id);
+                        
+                        if(room.owner == user_id) { // 방장일 경우 -> 방 삭제
+                            // 방 전체 삭제 및 leave, 알림 발송
+                            console.log('방장의 권한으로 방을 삭제 합니다.');
+                            database.RoomModel.deleteroom(room._id, function(err, result) {
+                                if(err) {
+                                    console.log('방 삭제 중 오류 발생');
+                                    sendError(socket, 'room', '404', '방 삭제 중 오류 발생');
+                                    return;
+                                }
+                                
+                                if(result.deletedCount > 0) {
+                                    console.dir(result);
+                                    return;
+                                } else {
+                                    sendError(socket, 'room', '404', '다시 삭제 시도 해보세요');
+                                }
+                            });
+                            
+                            return;
+                            
+                        } else { // 방장이 아닐 경우 -> room collection 내 참가자 배열에서 삭제.
+                            // leave 및 각 방에 알림 발송
+                            console.log('채팅방을 나갑니다.');
+                            return;
+                        }
+                        
+                        
+                        
+                        
+                    } else {
+                        sendError(socket, 'room', '404', '방이 삭제 되었거나, 찾을 수 없음');
+                        return;
+                    }
+                    
+                    
+                })
+                
+            } else { // 알 수 없는 command 받았을 때.   
+                sendError(socket, 'room', '404', '알 수 없는 이벤트 요청임');
             }
-            
             
         } else {
             // 세션 값이 없을 때 -> 로그인 안내
             sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
         }
         
-    })
+    });
     
-})
+});
 
 
 

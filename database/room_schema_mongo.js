@@ -130,6 +130,15 @@ Schema.createSchema = function (mongoose) {
                 .populate('owner', 'name email')                
                 .exec(callback);
         },
+        
+        deleteroom: function (id, callback) {
+
+            this.deleteOne({
+                    _id : id
+                })                
+                .exec(callback);
+        },
+        
         // 사용자가 들어있는 방들의 obj 아이디 값만 리턴 -> 요청 함수에서 판단
         userauth: function (id, room_id ,callback) {
             this.findOne({
@@ -141,7 +150,7 @@ Schema.createSchema = function (mongoose) {
         roomauth: function (roomname ,callback) {
             this.find({
                     'name': roomname
-                }, {_id : 1})
+                }, {_id : 1, owner : 1})
                 .exec(callback);
         },
         
