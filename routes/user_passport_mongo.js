@@ -52,7 +52,7 @@ module.exports = function(router, passport) {
     
     //로그인 인증
     router.route('/login').post(passport.authenticate('local-login', {
-        successReturnToOrRedirect : '/process/listroom?page=0&perPage=2',
+        successReturnToOrRedirect : '/public/index.html',
         failureRedirect : '/login',
         faliureFlash : true
     }));
@@ -71,7 +71,7 @@ module.exports = function(router, passport) {
     
     // 페이스북 인증 콜백 라우팅
     router.route('/auth/facebook/callback').get(passport.authenticate('facebook', {
-        successReturnToOrRedirect : '/process/listroom?page=0&perPage=2',
+        successReturnToOrRedirect : '/public/index.html',
         failureRedirect : '/',
         faliureFlash : true
     }));

@@ -174,7 +174,7 @@ console.log('socket.io 요청을 받을 준비가 됨');
 let login_ids = {};
 let room_ids = {};
 
-// 세션 관린 미들웨어
+// 세션 관련 미들웨어
 io.use(sharedsession(sessionMiddleware, {autoSave:true}));
 /*io.use(function(socket, next){
         // Wrap the express middleware
@@ -192,406 +192,437 @@ io.sockets.on('connection', function(socket) {
     
     console.log(socket.handshake.session);
     
-    
-    
-    
-    
-    // 로그인 이벤트를 어떻게 처리할 것인가
-    socket.on('login', function(login) {
-        console.log('login 이벤트를 받았습니다.');
-        console.dir(login); // id와 비밀번호의 정보가 담겨있다.
-        var database = app.get('db');
-        database.UserModel.findByEmail(login.email, function(err, user) {
-            if(err) {
-                sendAlert(socket, 'login', '404', '사용자 인증 과정 중 에러 발생!');
-            }
-
-            if(!user || user.length < 1) {
-                console.log('입력된 email 과 일치하는 사용자 정보가 없다.');
-                sendAlert(socket, 'login', '404', '입력된 email 과 일치하는 사용자 정보가 없다.');
-                return;
-            }
-            console.dir('--------------=-==============-=-=-==');
-            console.log(user[0]._doc._id);
-
-            var authenticated = user[0].authenticate(login.password, user[0]._doc.salt, user[0]._doc.hashed_password);
-
-            if (!authenticated) { // 비밀번호 틀렸을 경우
-                console.log('비밀번호 일치하지 않음');
-                sendAlert(socket, 'login', '404', '로그인 실패');
-            } else {
-                // 정상인 경우 -> 인증 성공인 경우 (login list => [서버 실행 중 간이 DB] 에 정보 저장 ).
-                console.log('chating 서버에서 로그인 성공');
-
-                // 로그인 된 아이디들을 배열에 저장.
-                console.log('접속한 소켓의 ID(소켓 고유) : ' + socket.id);
-                login_ids[login.email] = socket.id;
-                socket.login_email = login.email;
-                console.log(login_ids);
-                socket.handshake.session.email = login.email;
-                socket.handshake.session._id = user[0]._doc._id;
-                socket.handshake.session.save();
-
-                console.log('로그인 한 전체 클라이언트의 수 : %d', Object.keys(login_ids).length);
-                
-                var statusObj = {message: '< ' +login.email + ' > 로그인 되었습니다.'};
-                // 사용자의 방 리스트들을 배열로 넘겨준다.
-                database.RoomModel.getrooms(user[0]._doc._id, function(err, rooms) {
-                    if(err) {
-                        sendAlert(socket, 'login', '404', '채팅방 로딩 중 에러 발생!');
-                    }
-                    statusObj.rooms = rooms;
-                    //응답 메시지 전송
-                    socket.emit('logined', statusObj);
-                    return;
-                });
-                
-                return;
-                
-                
-            }
-            
-            
-        });
+    if(socket.handshake.session.passport.user) { // 인증(로그인) 된 소켓이면 -> 로그인 정보 서버 배열에 저장, 자동 채팅방 로드
+        var session = socket.handshake.session.passport.user;
+        console.log(session.email + ', ' + session.name + ', ' + session._id);
         
         
-    });
-    
-    //message 이벤트 받았을 때 처리
-    socket.on('message', function(message) {
         
-        // 인증 후
-        if(socket.handshake.session.email && socket.handshake.session._id) {
-            
-            console.log('message 이벤트를 받았습니다');
-            console.log(socket.handshake.session);
-            if(message.data == "") {
-                sendAlert(socket, 'message', '404', '내용을 입력하세요!');
-                return;
-            }
-            
-            /*message.sender = socket.handshake.session.email;*/
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        // 로그인 이벤트를 어떻게 처리할 것인가
+        socket.on('login', function(login) {
+            console.log('login 이벤트를 받았습니다.');
+            console.dir(login); // id와 비밀번호의 정보가 담겨있다.
             var database = app.get('db');
-            console.dir(message);
-            message.sender = socket.handshake.session.email;
-            message.sender_id = socket.handshake.session._id;
-            console.dir(message);
-            var sender_id = socket.handshake.session._id;
-            var room_id = room_ids[sender_id];
-            /*console.log(room_id);*/
-            
-            // 1. 받은 메시지 내용을 DB에 저장
-            database.RoomModel.findOneAndUpdate({_id:room_id},
-                {'$push': 
-                    {chats: {
-                            writer_id: sender_id,
-                            content: message.data
-                        }
-                    }
-                },
-                {'new':true, 'upsert':true}, function(err, result) {
-                if (err) {
-                    console.error('메시지 DB 추가 중 에러 발생 : ' + err.stack);
-                    sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
+            database.UserModel.findByEmail(login.email, function(err, user) {
+                if(err) {
+                    sendAlert(socket, 'login', '404', '사용자 인증 과정 중 에러 발생!');
+                }
+
+                if(!user || user.length < 1) {
+                    console.log('입력된 email 과 일치하는 사용자 정보가 없다.');
+                    sendAlert(socket, 'login', '404', '입력된 email 과 일치하는 사용자 정보가 없다.');
                     return;
                 }
-                console.log('-----------');
-                if(result._doc.chats){
+                console.dir('--------------=-==============-=-=-==');
+                console.log(user[0]._doc._id);
 
-                    var idx = result._doc.chats.length - 1;
-                    console.dir(idx);
-                    if(result._doc.chats[idx]._doc._id) {
-                        var newChatId = result._doc.chats[idx]._doc._id;
-                        console.log(newChatId);
-                        // 2. 방 내의 클라이언트들에게 이벤트 발생
-                        // 새로 추가 된 메시지 정보 받기
-                        database.RoomModel.newchat(room_id, newChatId, function(err, chat) {
-                            if (err) {
-                                console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
-                                sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
-                                return;
-                            }
-                            
-                            if(chat._doc.chats[0]._doc) {
-                                // 메시지 전송한 클라이언트에게 자신이 보낸 메시지 알림
-                                socket.emit('message', {data: chat._doc.chats[0]._doc, self: true});
-                                
-                                // room 안의 클라이언트들에게 broadcast 전송
-                                socket.to(room_id).emit('message', {data: chat._doc.chats[0]._doc, self: false});
-                            }
-                            return;
-                        });
+                var authenticated = user[0].authenticate(login.password, user[0]._doc.salt, user[0]._doc.hashed_password);
+
+                if (!authenticated) { // 비밀번호 틀렸을 경우
+                    console.log('비밀번호 일치하지 않음');
+                    sendAlert(socket, 'login', '404', '로그인 실패');
+                } else {
+                    // 정상인 경우 -> 인증 성공인 경우 (login list => [서버 실행 중 간이 DB] 에 정보 저장 ).
+                    console.log('chating 서버에서 로그인 성공');
+
+                    // 로그인 된 아이디들을 배열에 저장.
+                    console.log('접속한 소켓의 ID(소켓 고유) : ' + socket.id);
+                    login_ids[login.email] = socket.id;
+                    socket.login_email = login.email;
+                    console.log(login_ids);
+                    socket.handshake.session.email = login.email;
+                    socket.handshake.session._id = user[0]._doc._id;
+                    socket.handshake.session.save();
+
+                    console.log('로그인 한 전체 클라이언트의 수 : %d', Object.keys(login_ids).length);
+
+                    var statusObj = {message: '< ' +login.email + ' > 로그인 되었습니다.'};
+                    // 사용자의 방 리스트들을 배열로 넘겨준다.
+                    database.RoomModel.getrooms(user[0]._doc._id, function(err, rooms) {
+                        if(err) {
+                            sendAlert(socket, 'login', '404', '채팅방 로딩 중 에러 발생!');
+                        }
+                        statusObj.rooms = rooms;
+                        //응답 메시지 전송
+                        socket.emit('logined', statusObj);
                         return;
+                    });
+
+                    return;
+
+
+                }
+
+
+            });
+
+
+        });
+
+        //message 이벤트 받았을 때 처리
+        socket.on('message', function(message) {
+
+            // 인증 후
+            if(socket.handshake.session.email && socket.handshake.session._id) {
+
+                console.log('message 이벤트를 받았습니다');
+                console.log(socket.handshake.session);
+                if(message.data == "") {
+                    sendAlert(socket, 'message', '404', '내용을 입력하세요!');
+                    return;
+                }
+
+                /*message.sender = socket.handshake.session.email;*/
+                var database = app.get('db');
+                console.dir(message);
+                message.sender = socket.handshake.session.email;
+                message.sender_id = socket.handshake.session._id;
+                console.dir(message);
+                var sender_id = socket.handshake.session._id;
+                var room_id = room_ids[sender_id];
+                /*console.log(room_id);*/
+
+                // 1. 받은 메시지 내용을 DB에 저장
+                database.RoomModel.findOneAndUpdate({_id:room_id},
+                    {'$push': 
+                        {chats: {
+                                writer_id: sender_id,
+                                content: message.data
+                            }
+                        }
+                    },
+                    {'new':true, 'upsert':true}, function(err, result) {
+                    if (err) {
+                        console.error('메시지 DB 추가 중 에러 발생 : ' + err.stack);
+                        sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
+                        return;
+                    }
+                    console.log('-----------');
+                    if(result._doc.chats){
+
+                        var idx = result._doc.chats.length - 1;
+                        console.dir(idx);
+                        if(result._doc.chats[idx]._doc._id) {
+                            var newChatId = result._doc.chats[idx]._doc._id;
+                            console.log(newChatId);
+                            // 2. 방 내의 클라이언트들에게 이벤트 발생
+                            // 새로 추가 된 메시지 정보 받기
+                            database.RoomModel.newchat(room_id, newChatId, function(err, chat) {
+                                if (err) {
+                                    console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
+                                    sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
+                                    return;
+                                }
+
+                                if(chat._doc.chats[0]._doc) {
+                                    // 메시지 전송한 클라이언트에게 자신이 보낸 메시지 알림
+                                    socket.emit('message', {data: chat._doc.chats[0]._doc, self: true});
+
+                                    // room 안의 클라이언트들에게 broadcast 전송
+                                    socket.to(room_id).emit('message', {data: chat._doc.chats[0]._doc, self: false});
+                                }
+                                return;
+                            });
+                            return;
+
+                        } else {
+                            console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
+                            sendError(socket, 'message', '404', '메시지 저장 실패');
+                            return;
+                        }
+
 
                     } else {
                         console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
                         sendError(socket, 'message', '404', '메시지 저장 실패');
                         return;
-                    }
+                    }  
+                });
 
-
-                } else {
-                    console.error('새 메시지 불러오는 중 에러 발생 : ' + err.stack);
-                    sendError(socket, 'message', '404', '메시지 저장 실패');
-                    return;
-                }  
-            });
-            
-            /*database.RoomModel.addchats(room_id, message.data, sender_id, function(err, result) {
-                if(err) {
-                    sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
-                    return;
-                }
-                console.log('-----------');
-                console.dir(result);
-                
-                if(result.nModified == 1) {
-                    // 2. 방 내의 클라이언트들에게 이벤트 발생
-                    message.self = false;
-                    socket.to(room_id).emit('message', message);
-                    message.self = true;
-                    socket.emit('message', message);
-                    return;
-                } else {
-                    sendError(socket, 'room', '404', '방 정보 업데이트 중 오류 발생');
-                    return;
-                }
-                    
-            });*/
-            return;
-            
-        } else {
-            sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
-        }
-        
-         
-        
-    });
-    
-    socket.on('logout', function(logout) {
-        console.log('로그아웃을 진행합니다');
-        console.log(socket.handshake.session.email);
-        var logout_idx = socket.handshake.session.email;
-        delete login_ids[logout_idx];
-        console.log(login_ids);
-        if (socket.handshake.session.email || socket.handshake.session._id) {
-            delete socket.handshake.session.email;
-            delete socket.handshake.session._id;
-            socket.handshake.session.save();
-        }
-        var statusObj = {message:'로그아웃되었습니다.'};
-        socket.emit('logouted', statusObj);
-           
-    });
-    
-    // 클라이언트의 방 입장, 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
-    // 기존 방에 새로운 클라나 기존 멤버가 들어왔을 때 알림 보여준다.
-    socket.on('room', function(room) {
-        
-        if(socket.handshake.session.email && socket.handshake.session._id) { // 우선 클라이언트의 인증 (세션 유무)
-            console.log(socket.handshake.session);
-            
-            console.log('room 이벤트를 받았다.');
-            console.dir(room);
-            
-            var database = app.get('db');
-            var user_email = socket.handshake.session.email;
-            var user_id = socket.handshake.session._id;
-            
-            
-            if (room.command === 'in') { // 방 입장 이벤트이다
-                
-                // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
-                if(room.roomName == "") {
-                    sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
-                    console.log('방 이름이 공백');
-                    return;
-                }
-                
-                // 방의 유무를 먼저 따진다
-                database.RoomModel.roomauth(room.roomName, function(err, result) {
+                /*database.RoomModel.addchats(room_id, message.data, sender_id, function(err, result) {
                     if(err) {
-                        sendError(socket, 'room', '404', '방 조회 중 오류 발생');
+                        sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
                         return;
                     }
                     console.log('-----------');
-                    
-                    
-                    if(result.length > 0) { // 이름 일치하는 방이 있다.
-                        // 일치하는 방이 있으면? -> 방의 _id를 통해 join 하고, 방의 정보를 불러온다
-                        console.log('일치하는 방을 찾음');
-                        var room_id = result[0]._doc._id.toString(); //ObjectID -> String
-                        // 
-                        room_ids[user_id] = room_id;
-                        console.log(room_ids);
-                        socket.join(room_id); // join
-                        console.log('user_id : ' + user_id  + ' joined --> room_id : ' + room_id );
-                        
-                        // 새로운 참가자는 room 컬렉션에 id 넣어주고, 원래 있던 사람은 무시?
-                        // addToSet 함수를 사용할 때, 갱신되는 문제점 발생 -> 배열 내에 값이 중복되면 무시하는 방법 생각해야함 upsert 다시 확인
-                        database.RoomModel.userspull(room_id, user_id, function(err, result_pull) {
-                            
-                            database.RoomModel.userspush(room_id, user_id, function(err, result) {
-                                if(err) {
-                                    sendError(socket, 'room', '404', '유저 정보 업데이트 중 오류 발생');
-                                    console.log(err);
-                                    return;
-                                }
-                                if(!result) {
-                                    sendError(socket, 'room', '404', '새로운 방에 입장 합니다?');
+                    console.dir(result);
 
-                                }
-                                console.log('확인 해보기');
-                                console.dir(result);
-
-                                // 수정이 되면, 방의 채팅 내용, 방장, 사용자 정보 함께 반환.
-                                if(result.nModified == 1) {
-                                    console.log('조회 및 채팅 내용 반환 할 차례');
-                                    
-                                    // 데이터 넘겨주는 과정 및, 이벤트(init, in) 전달 방법 고민
-                                    database.RoomModel.loadroom(room_id, function(err, room_init) {
-                                       if(err || !room_init) {
-                                            sendError(socket, 'room', '404', '방 정보 불러오는 중 오류 발생');
-                                            return;
-                                        }
-                                        /*console.dir(room_init._doc);*/
-                                        if(room_init) {
-                                            var output1 = {command : 'init', room_init : room_init, user_id : user_id };
-                                            console.log('클라이언트로 보낼 데이터 : ');
-                                            console.dir(JSON.stringify(output1));
-                                            // 같은 방 소켓 객체들에게 room 이벤트 전달.
-                                            /*socket.to(login_ids[user_email]).emit('room', output1);*/
-                                            socket.emit('room', output1);
-                                            
-                                            // 접속해있는 다른 사용자에게 알림 준다?
-                                            var output2 = {command : 'in', message : user_email + ' 님 접속!'};
-                                            io.sockets.in(room_id).emit('room', output2);
-                                            return;
-                                        }
-
-                                    });
-
-                                    return;
-                                } else { // room 컬렉션 내에 참가자 정보 업데이트 안되었을 때
-                                    sendError(socket, 'room', '404', '방 정보 업데이트 중 오류 발생');
-                                    return;
-                                }
-                            });
-                            return;
-                        });
-                        
-                        sendResponse(socket, 'room', '200', room.roomName + ' 입장 되었습니다.');
+                    if(result.nModified == 1) {
+                        // 2. 방 내의 클라이언트들에게 이벤트 발생
+                        message.self = false;
+                        socket.to(room_id).emit('message', message);
+                        message.self = true;
+                        socket.emit('message', message);
                         return;
-                        
                     } else {
-                        sendAlert(socket, 'room', '404', '존재하지 않는 방 이름입니다.');
+                        sendError(socket, 'room', '404', '방 정보 업데이트 중 오류 발생');
                         return;
                     }
-                });
-            } 
-            
-            else if(room.command === 'create') {
-                //io.sockets는 전체 연결된 객체의 정보 담고있음
-                if(io.sockets.adapter.rooms[room.roomId]) {
-                    console.log('방이 이미 만들어져 있습니다.');
 
-                } else {
-                    console.log('방을 새로 만듭니다.');
+                });*/
+                return;
 
-                    socket.join(room.roomId);
-                    console.log(io.sockets.sockets[room.roomId]);
-                    console.log(io.sockets.allSockets());
-                    //console.log(io.sockets.in(room.roomId));
-
-                    /*var curRoom = io.sockets.adapter.rooms[room.roomId];
-                    console.log(curRoom);
-
-                    curRoom.id = room.roomId;
-                    curRoom.name = room.roomName;
-                    curRoom.owner = room.roomOwner;*/
-                } 
+            } else {
+                sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
+            }
 
 
 
-            } 
-            
-            else if (room.command === 'update') {
-                var curRoom = io.sockets.adapter.rooms[room.roomId];
-                curRoom.id = room.roomId;
-                curRoom.name = room.roomName;
-                curRoom.owner = room.roomOwner;
-            } 
-            
-            else if (room.command === 'out') {
-                
-                // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
-                if(room.roomName == "") {
-                    sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
-                    console.log('방 이름이 공백');
-                    return;
-                }
-                // 1. 방의 유무 확인
-                database.RoomModel.roomauth(room.roomName, function(err, result) {
-                    
-                    if(err) {
-                        sendError(socket, 'room', '404', '방 조회 중 오류 발생');
+        });
+
+        socket.on('logout', function(logout) {
+            console.log('로그아웃을 진행합니다');
+            console.log(socket.handshake.session.email);
+            var logout_idx = socket.handshake.session.email;
+            delete login_ids[logout_idx];
+            console.log(login_ids);
+            if (socket.handshake.session.email || socket.handshake.session._id) {
+                delete socket.handshake.session.email;
+                delete socket.handshake.session._id;
+                socket.handshake.session.save();
+            }
+            var statusObj = {message:'로그아웃되었습니다.'};
+            socket.emit('logouted', statusObj);
+
+        });
+
+        // 클라이언트의 방 입장, 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
+        // 기존 방에 새로운 클라나 기존 멤버가 들어왔을 때 알림 보여준다.
+        socket.on('room', function(room) {
+
+            if(socket.handshake.session.email && socket.handshake.session._id) { // 우선 클라이언트의 인증 (세션 유무)
+                console.log(socket.handshake.session);
+
+                console.log('room 이벤트를 받았다.');
+                console.dir(room);
+
+                var database = app.get('db');
+                var user_email = socket.handshake.session.email;
+                var user_id = socket.handshake.session._id;
+
+
+                if (room.command === 'in') { // 방 입장 이벤트이다
+
+                    // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
+                    if(room.roomName == "") {
+                        sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
+                        console.log('방 이름이 공백');
                         return;
                     }
-                    
-                    if(result.length > 0) { // 일치하는 방이 있다면?
-                        var room = result[0]._doc;
-                        console.dir(result[0]._doc);
-                        console.log('방장:' + room.owner + '--> ' + user_id);
-                        console.log(room.owner == user_id);
-                        
-                        if(room.owner == user_id) { // 방장일 경우 -> 방 삭제
-                            // 방 전체 삭제 및 leave, 알림 발송
-                            console.log('방장의 권한으로 방을 삭제 합니다.');
-                            database.RoomModel.deleteroom(room._id, function(err, result) {
-                                if(err) {
-                                    console.log('방 삭제 중 오류 발생');
-                                    sendError(socket, 'room', '404', '방 삭제 중 오류 발생');
-                                    return;
-                                }
-                                
-                                if(result.deletedCount > 0) {
-                                    console.dir(result);
-                                    return;
-                                } else {
-                                    sendError(socket, 'room', '404', '다시 삭제 시도 해보세요');
-                                }
-                            });
-                            
-                            return;
-                            
-                        } else { // 방장이 아닐 경우 -> room collection 내 참가자 배열에서 삭제.
-                            // leave 및 각 방에 알림 발송
-                            console.log('채팅방을 나갑니다.');
+
+                    // 방의 유무를 먼저 따진다
+                    database.RoomModel.roomauth(room.roomName, function(err, result) {
+                        if(err) {
+                            sendError(socket, 'room', '404', '방 조회 중 오류 발생');
                             return;
                         }
-                        
-                        
-                        
-                        
+                        console.log('-----------');
+
+
+                        if(result.length > 0) { // 이름 일치하는 방이 있다.
+                            // 일치하는 방이 있으면? -> 방의 _id를 통해 join 하고, 방의 정보를 불러온다
+                            console.log('일치하는 방을 찾음');
+                            var room_id = result[0]._doc._id.toString(); //ObjectID -> String
+                            // 
+                            room_ids[user_id] = room_id;
+                            console.log(room_ids);
+                            socket.join(room_id); // join
+                            console.log('user_id : ' + user_id  + ' joined --> room_id : ' + room_id );
+
+                            // 새로운 참가자는 room 컬렉션에 id 넣어주고, 원래 있던 사람은 무시?
+                            // addToSet 함수를 사용할 때, 갱신되는 문제점 발생 -> 배열 내에 값이 중복되면 무시하는 방법 생각해야함 upsert 다시 확인
+                            database.RoomModel.userspull(room_id, user_id, function(err, result_pull) {
+
+                                database.RoomModel.userspush(room_id, user_id, function(err, result) {
+                                    if(err) {
+                                        sendError(socket, 'room', '404', '유저 정보 업데이트 중 오류 발생');
+                                        console.log(err);
+                                        return;
+                                    }
+                                    if(!result) {
+                                        sendError(socket, 'room', '404', '새로운 방에 입장 합니다?');
+
+                                    }
+                                    console.log('확인 해보기');
+                                    console.dir(result);
+
+                                    // 수정이 되면, 방의 채팅 내용, 방장, 사용자 정보 함께 반환.
+                                    if(result.nModified == 1) {
+                                        console.log('조회 및 채팅 내용 반환 할 차례');
+
+                                        // 데이터 넘겨주는 과정 및, 이벤트(init, in) 전달 방법 고민
+                                        database.RoomModel.loadroom(room_id, function(err, room_init) {
+                                           if(err || !room_init) {
+                                                sendError(socket, 'room', '404', '방 정보 불러오는 중 오류 발생');
+                                                return;
+                                            }
+                                            /*console.dir(room_init._doc);*/
+                                            if(room_init) {
+                                                var output1 = {command : 'init', room_init : room_init, user_id : user_id };
+                                                console.log('클라이언트로 보낼 데이터 : ');
+                                                console.dir(JSON.stringify(output1));
+                                                // 같은 방 소켓 객체들에게 room 이벤트 전달.
+                                                /*socket.to(login_ids[user_email]).emit('room', output1);*/
+                                                socket.emit('room', output1);
+
+                                                // 접속해있는 다른 사용자에게 알림 준다?
+                                                var output2 = {command : 'in', message : user_email + ' 님 접속!'};
+                                                io.sockets.in(room_id).emit('room', output2);
+                                                return;
+                                            }
+
+                                        });
+
+                                        return;
+                                    } else { // room 컬렉션 내에 참가자 정보 업데이트 안되었을 때
+                                        sendError(socket, 'room', '404', '방 정보 업데이트 중 오류 발생');
+                                        return;
+                                    }
+                                });
+                                return;
+                            });
+
+                            sendResponse(socket, 'room', '200', room.roomName + ' 입장 되었습니다.');
+                            return;
+
+                        } else {
+                            sendAlert(socket, 'room', '404', '존재하지 않는 방 이름입니다.');
+                            return;
+                        }
+                    });
+                } 
+
+                else if(room.command === 'create') {
+                    //io.sockets는 전체 연결된 객체의 정보 담고있음
+                    if(io.sockets.adapter.rooms[room.roomId]) {
+                        console.log('방이 이미 만들어져 있습니다.');
+
                     } else {
-                        sendError(socket, 'room', '404', '방이 삭제 되었거나, 찾을 수 없음');
+                        console.log('방을 새로 만듭니다.');
+
+                        socket.join(room.roomId);
+                        console.log(io.sockets.sockets[room.roomId]);
+                        console.log(io.sockets.allSockets());
+                        //console.log(io.sockets.in(room.roomId));
+
+                        /*var curRoom = io.sockets.adapter.rooms[room.roomId];
+                        console.log(curRoom);
+
+                        curRoom.id = room.roomId;
+                        curRoom.name = room.roomName;
+                        curRoom.owner = room.roomOwner;*/
+                    } 
+
+
+
+                } 
+
+                else if (room.command === 'update') {
+                    var curRoom = io.sockets.adapter.rooms[room.roomId];
+                    curRoom.id = room.roomId;
+                    curRoom.name = room.roomName;
+                    curRoom.owner = room.roomOwner;
+                } 
+
+                else if (room.command === 'out') {
+
+                    // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
+                    if(room.roomName == "") {
+                        sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
+                        console.log('방 이름이 공백');
                         return;
                     }
-                    
-                    
-                })
-                
-            } else { // 알 수 없는 command 받았을 때.   
-                sendError(socket, 'room', '404', '알 수 없는 이벤트 요청임');
+                    // 1. 방의 유무 확인
+                    database.RoomModel.roomauth(room.roomName, function(err, result) {
+
+                        if(err) {
+                            sendError(socket, 'room', '404', '방 조회 중 오류 발생');
+                            return;
+                        }
+
+                        if(result.length > 0) { // 일치하는 방이 있다면?
+                            var room = result[0]._doc;
+                            console.dir(result[0]._doc);
+                            console.log('방장:' + room.owner + ' ==(?) ' + user_id);
+                            console.log(room.owner == user_id);
+
+                            if(room.owner == user_id) { // 방장일 경우 -> 방 삭제
+                                // 방 전체 삭제 및 leave, 알림 발송
+                                console.log('방장의 권한으로 방을 삭제 합니다.');
+                                database.RoomModel.deleteroom(room._id, function(err, result) {
+                                    if(err) {
+                                        console.log('방 삭제 중 오류 발생');
+                                        sendError(socket, 'room', '404', '방 삭제 중 오류 발생');
+                                        return;
+                                    }
+
+                                    if(result.deletedCount > 0) { // room 컬렉션을 삭제한 경우
+                                        console.log('방이 삭제되었습니다.');
+                                        var room_id = room_ids[user_id];
+                                        delete room_ids[user_id];
+                                        console.log(room_ids);
+                                        // 같은 방에 있던 클라이언트들에게 event 전송
+                                        var output = {command: 'deleted'};
+                                        socket.to(room_id).emit('message', output);
+                                        socket.emit('message', output);
+
+                                        return;
+
+                                    } else {
+                                        sendError(socket, 'room', '404', '다시 삭제 시도 해보세요');
+                                    }
+                                });
+
+                                return;
+
+                            } else { // 방장이 아닐 경우 -> room collection 내 참가자 배열에서 삭제.
+                                // leave 및 각 방에 알림 발송
+                                console.log('채팅방을 나갑니다.');
+                                var room_id = room_ids[user_id];
+                                delete room_ids[user_id];
+                                console.log(room_ids);
+                                var output = {command: 'out', room_name: room.roomName};
+
+                                socket.to(room_id).emit('message', output);
+                                return;
+                            }
+
+
+
+
+                        } else {
+                            sendError(socket, 'room', '404', '방이 삭제 되었거나, 찾을 수 없음');
+                            return;
+                        }
+
+
+                    })
+
+                } else { // 알 수 없는 command 받았을 때.   
+                    sendError(socket, 'room', '404', '알 수 없는 이벤트 요청임');
+                }
+
+            } else {
+                // 세션 값이 없을 때 -> 로그인 안내
+                sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
             }
-            
-        } else {
-            // 세션 값이 없을 때 -> 로그인 안내
-            sendAlert(socket, 'room', '404', '우선 로그인 해주세요!');
-        }
+
+        });
+    } else { // 로그인부터 하게끔 리다이렉팅
+        var destination = '/login';
+        socket.emit('redirect', destination);
         
-    });
-    
+    }
 });
 
 
