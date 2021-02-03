@@ -417,7 +417,10 @@
                             
                         } else if (data.command == 'refresh') {
                             console.log('방 목록 새로고침 이벤트');
-                            deleteRooms(function() {
+                            if(data.message != '') {
+                                alert(data.message);
+                            }
+                            deleteRooms(function() { // 방 목록을 지워준 뒤 새로운 방 목록을 나타내준다.
                                 $.each(data.room_list, function(index, room){ 
                                 listrooms(room);
                             });
@@ -434,6 +437,8 @@
                         } else if (data.command == 'out') {
                             console.log('room-out 이벤트 발생');
                             console.dir(data);
+                            // 대화 내용 리셋, 방 리프레쉬
+                            socket.emit('room', {command : 'refresh'});
                             alert(data.room_name + '을 나왔습니다.');
                             
                         } else if (data.command == 'deleted') {

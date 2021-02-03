@@ -524,10 +524,26 @@ io.sockets.on('connection', function(socket) {
                             console.log('채팅방을 나갑니다.');
                             var room_id = room_ids[user_id];
                             delete room_ids[user_id];
-                            console.log(room_ids);
+                            
+                            database.RoomModel.userspull(room_id, user_id, function(err, result) {
+                                // DB 내의 참가자 배열에서 클라이언트를 제거합니다.
+                                if(err) {
+                                    console.log('방 나가기 중 오류 발생');
+                                    sendError(socket, 'room', '404', '방 나가는 중 오류 발생');
+                                    return;
+                                }
+                                if(result) {
+                                    console.log('------------------=-=-=-=-');
+                                    console.dir(result);
+                                    socket.emit('room', {command: 'out', room_name : room.roomName});
+                                    return;
+                                }
+                            });
+                            
+                            /*console.log(room_ids);
                             var output = {command: 'out', room_name: room.roomName};
 
-                            socket.to(room_id).emit('message', output);
+                            socket.to(room_id).emit('message', output);*/
                             return;
                         }
 
@@ -542,7 +558,11 @@ io.sockets.on('connection', function(socket) {
 
                 });
 
-            } 
+            } else if (room.command === 'refresh') {
+                /*var data = {message: ''};*/
+                roomRefresh(database, user._id, socket);
+                return;
+            }
 
             else { // 알 수 없는 command 받았을 때.   
                 sendError(socket, 'room', '404', '알 수 없는 이벤트 요청임');
@@ -596,10 +616,12 @@ function roomRefresh(database, user_id, socket) {
             sendAlert(socket, 'login', '404', '채팅방 로딩 중 에러 발생!');
             return;
         }
-        var data = {command : 'refresh', room_list : rooms}
+        var data = {};
+        data.command = 'refresh'
+        data.room_list = rooms;
         //응답 메시지 전송
         socket.emit('room', data);
-        /*return;*/
+        return;
     });
 }
 
