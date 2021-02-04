@@ -476,24 +476,27 @@ io.sockets.on('connection', function(socket) {
                     console.log('방 이름이 공백');
                     return;
                 }
-                // 1. 방의 유무 확인
+                // 1. 방의 유무 확인 ->  (수정) 방 이름, 
                 database.RoomModel.roomauth(room.roomName, function(err, result) {
-
+                    
+                    var room_name = room.roomName;
                     if(err) {
                         sendError(socket, 'room', '404', '방 조회 중 오류 발생');
                         return;
                     }
 
                     if(result.length > 0) { // 일치하는 방이 있다면?
-                        var room = result[0]._doc;
+                        var outroom = result[0]._doc;
                         console.dir(result[0]._doc);
-                        console.log('방장:' + room.owner + ' ==(?) ' + user_id);
-                        console.log(room.owner == user_id);
-
-                        if(room.owner == user_id) { // 방장일 경우 -> 방 삭제
-                            // 방 전체 삭제 및 leave, 알림 발송
+                        console.log('방장:' + outroom.owner + ' ==(?) ' + user_id);
+                        console.log(outroom.owner == user_id);
+                        
+                        
+                        // 방장일 경우 -> 방 삭제
+                        // 방 전체 삭제 및 leave, 알림 발송
+                        if(outroom.owner == user_id) { 
                             console.log('방장의 권한으로 방을 삭제 합니다.');
-                            database.RoomModel.deleteroom(room._id, function(err, result) {
+                            database.RoomModel.deleteroom(outroom._id, function(err, result) {
                                 if(err) {
                                     console.log('방 삭제 중 오류 발생');
                                     sendError(socket, 'room', '404', '방 삭제 중 오류 발생');
@@ -502,13 +505,19 @@ io.sockets.on('connection', function(socket) {
 
                                 if(result.deletedCount > 0) { // room 컬렉션을 삭제한 경우
                                     console.log('방이 삭제되었습니다.');
-                                    var room_id = room_ids[user_id];
-                                    delete room_ids[user_id];
-                                    console.log(room_ids);
+                                    
                                     // 같은 방에 있던 클라이언트들에게 event 전송
-                                    var output = {command: 'deleted'};
-                                    socket.to(room_id).emit('message', output);
-                                    socket.emit('message', output);
+                                    socket.to(room_id).emit('room', {command: 'deleted'});
+                                    if(room_ids[user_id]) {
+                                        var room_id = room_ids[user_id];
+                                        delete room_ids[user_id];
+                                        socket.leave(room_id);
+                                        console.log('방 leave 및 room_ids 배열 내 삭제 완료');
+                                    }
+                                    console.log(room_ids);
+                                    
+                                    // 방장 클라에게 이벤트 전송
+                                    socket.emit('room', {command: 'out', roomName : room_name});
 
                                     return;
 
@@ -519,36 +528,40 @@ io.sockets.on('connection', function(socket) {
 
                             return;
 
-                        } else { // 방장이 아닐 경우 -> room collection 내 참가자 배열에서 삭제.
+                        } 
+                        
+                        // 방장이 아닐 경우 -> room collection 내 참가자 배열에서 삭제.
+                        else { 
                             // leave 및 각 방에 알림 발송
-                            console.log('채팅방을 나갑니다.');
-                            var room_id = room_ids[user_id];
-                            delete room_ids[user_id];
-                            
-                            database.RoomModel.userspull(room_id, user_id, function(err, result) {
+                            console.log('채팅방을 나갑니다. (방장 아님)');
+                            if(room_ids[user_id]) {
+                                var room_id = room_ids[user_id];
+                                delete room_ids[user_id];
+                                socket.leave(room_id);
+                                console.log('방 leave 및 room_ids 배열 내 삭제 완료');
+                                
                                 // DB 내의 참가자 배열에서 클라이언트를 제거합니다.
-                                if(err) {
-                                    console.log('방 나가기 중 오류 발생');
-                                    sendError(socket, 'room', '404', '방 나가는 중 오류 발생');
-                                    return;
-                                }
-                                if(result) {
-                                    console.log('------------------=-=-=-=-');
-                                    console.dir(result);
-                                    socket.emit('room', {command: 'out', room_name : room.roomName});
-                                    return;
-                                }
-                            });
-                            
-                            /*console.log(room_ids);
-                            var output = {command: 'out', room_name: room.roomName};
+                                database.RoomModel.userspull(outroom._id, user_id, function(err, result) {
+                                    
+                                    if(err) {
+                                        console.log('방 나가기 중 오류 발생');
+                                        sendError(socket, 'room', '404', '방 나가는 중 오류 발생');
+                                        return;
+                                    }
+                                    if(result.nModified > 0) {
+                                        console.log('------------------=-=-=-=-');
+                                        console.dir(result);
+                                        socket.emit('room', {command: 'out', roomName : room_name});
+                                        return;
+                                    } else {
+                                        //오류 처리
+                                    }
+                                });
 
-                            socket.to(room_id).emit('message', output);*/
+                                return;
+                            }
                             return;
                         }
-
-
-
 
                     } else {
                         sendError(socket, 'room', '404', '방이 삭제 되었거나, 찾을 수 없음');
@@ -558,8 +571,11 @@ io.sockets.on('connection', function(socket) {
 
                 });
 
-            } else if (room.command === 'refresh') {
+            }
+            
+            else if (room.command === 'refresh') {
                 /*var data = {message: ''};*/
+                console.log('refresh 이벤트 받음(서버 단)');
                 roomRefresh(database, user._id, socket);
                 return;
             }
@@ -624,6 +640,8 @@ function roomRefresh(database, user_id, socket) {
         return;
     });
 }
+
+// delete 방장, 참가자 모두 삭제 후, (out)이벤트 발생 -> 재 요청 -> 방 새로고침 이벤트 (refresh) 발생, 
 
 
 
