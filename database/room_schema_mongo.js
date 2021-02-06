@@ -8,6 +8,7 @@ Schema.createSchema = function (mongoose) {
     var RoomSchema = mongoose.Schema({
         name: {
             type: String,
+            trim: true,
             'default': '',
             required: true
         }, // 글 제목
@@ -32,6 +33,7 @@ Schema.createSchema = function (mongoose) {
                 ref: 'users'
             },
             content: {
+                trim: true,
                 type: String,
                 'default': ''
             }, // 채팅 내용
@@ -60,6 +62,9 @@ Schema.createSchema = function (mongoose) {
     // 필수 속성에 대한 'required' validation
     RoomSchema.path('name').required(true, '방 이름을 입력하셔야 합니다.');
     RoomSchema.path('owner').required(true, '방장의 이름을 입력하셔야 합니다.');
+    RoomSchema.path('name').validate(function (name) {
+        return name && name.length <= 10;
+    }, '방 이름은 10자 이내로 설정해주세요');
 
     // 스키마에 인스턴스 메소드 추가
     RoomSchema.methods = {
@@ -111,80 +116,98 @@ Schema.createSchema = function (mongoose) {
         },
         getrooms: function (id, callback) {
             this.find({
-                    'users.users_id': id
-                    }
-                    ,{updated_at:0, chats:0}
-                )
+                    $or: [{
+                        'users.users_id': id
+                }, {
+                        owner: id
+                    }]
+                }, {
+                    updated_at: 0,
+                    chats: 0
+                })
                 .populate('owner', 'name')
                 .sort({
                     'created_at': -1
-                })            
+                })
                 .exec(callback);
         },
         loadroom: function (id, callback) {
 
             this.findOne({
-                    _id : id
-                }, {'users._id' : 0, 'users.created_at' : 0})
+                    _id: id
+                }, {
+                    'users._id': 0,
+                    'users.created_at': 0
+                })
                 .populate('chats.writer_id', 'name _id email')
-                .populate('owner', 'name email')                
+                .populate('owner', 'name email')
                 .exec(callback);
         },
-        
+
         deleteroom: function (id, callback) {
 
             this.deleteOne({
-                    _id : id
-                })                
+                    _id: id
+                })
                 .exec(callback);
         },
-        
+
         // 사용자가 들어있는 방들의 obj 아이디 값만 리턴 -> 요청 함수에서 판단
-        userauth: function (id, room_id ,callback) {
+        userauth: function (id, room_id, callback) {
             this.findOne({
-                    'users.users_id': id, _id: room_id
-                }, {_id : 1})
+                    'users.users_id': id,
+                    _id: room_id
+                }, {
+                    _id: 1
+                })
                 .exec(callback);
         },
-        
-        roomauth: function (roomname ,callback) {
+
+        roomauth: function (roomname, callback) {
             this.find({
                     'name': roomname
-                }, {_id : 1, owner : 1})
+                }, {
+                    _id: 1,
+                    owner: 1
+                })
                 .exec(callback);
         },
-        
+
         // 방의 구성원 정보를 삭제 해준다. -> 삭제 후 추가 (새로운 값 갱신)
         userspull: function (room_id, user_id, callback) {
             this.updateMany({
-                    _id: room_id
-                }, {
-                    $pull: {
-                        users: {
-                            users_id: user_id
+                        _id: room_id
+                    }, {
+                        $pull: {
+                            users: {
+                                users_id: user_id
+                            }
                         }
                     }
-                }/*,
-                { upsert: true }*/)
+                    /*,
+                                    { upsert: true }*/
+                )
                 .exec(callback);
         },
-        
+
         // 방의 구성원 정보를 추가 해준다.
         userspush: function (room_id, user_id, callback) {
             this.updateOne({
-                    _id: room_id
-                }, {
-                    $push: {
-                        users: {
-                            users_id: user_id
+                        _id: room_id
+                    }, {
+                        $push: {
+                            users: {
+                                users_id: user_id
+                            }
                         }
                     }
-                }/*,
-                { upsert: true }*/)
+                    /*,
+                                    { upsert: true }*/
+                )
                 .exec(callback);
         },
-        
-        addchats: function (room_id, data, writer_id ,callback) { // 댓글 추가
+
+        addchats: function (room_id, data, writer_id, callback) { // 댓글 추가
             this.updateOne({
                     _id: room_id
                 }, {
@@ -197,17 +220,24 @@ Schema.createSchema = function (mongoose) {
                 })
                 .exec(callback);
         },
-        
+
         newchat: function (room_id, chat_id, callback) { // 댓글 추가
             this.findOne({
-                    _id: room_id, 'chats._id': chat_id
-                },{ chats: {$elemMatch: {_id: chat_id}}})
+                    _id: room_id,
+                    'chats._id': chat_id
+                }, {
+                    chats: {
+                        $elemMatch: {
+                            _id: chat_id
+                        }
+                    }
+                })
                 .populate('chats.writer_id', 'name _id email')
                 .exec(callback);
         }
-        
-        
-        
+
+
+
     }
 
     console.log('RoomSchema 정의함.');

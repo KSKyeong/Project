@@ -219,10 +219,6 @@ io.sockets.on('connection', function(socket) {
             
         });
         
-        /*roomRefresh(database, user._id, socket);*/
-
-        /*return;*/
-        
         //message 이벤트 받았을 때 처리
         socket.on('message', function(message) {
             
@@ -315,7 +311,6 @@ io.sockets.on('connection', function(socket) {
 
         });
 
-        
         // 클라이언트의 방 입장, 생성, 수정, 삭제 이벤트를 받아 처리 후 클라에게 다시 현재 룸들의 정보를 room 이벤트로 emit
         // 기존 방에 새로운 클라나 기존 멤버가 들어왔을 때 알림 보여준다.
         socket.on('room', function(room) {
@@ -424,30 +419,64 @@ io.sockets.on('connection', function(socket) {
             } 
 
             else if(room.command === 'create') {
-                //io.sockets는 전체 연결된 객체의 정보 담고있음
-                if(io.sockets.adapter.rooms[room.roomId]) {
-                    console.log('방이 이미 만들어져 있습니다.');
-
+                // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
+                if(room.roomName == "") {
+                    sendAlert(socket, 'room', '404', '방 이름을 입력하세요');
+                    console.log('방 이름이 공백');
+                    return;
+                }
+                console.log(room.roomName.length);
+                if(room.roomName.length <= 10) {
+                    var room_name = myTrim(room.roomName);
+                    console.log(room_name);
+                    
+                    // 방 이름 중복 확인
+                    database.RoomModel.roomauth(room_name, function(err, result) {
+                        if(err) {
+                            sendError(socket, 'room', '404', '방 조회 중 오류 발생');
+                            return;
+                        }
+                        
+                        console.dir(result.length > 0);
+                        if(result.length < 1) {
+                            var newroom = new database.RoomModel({
+                                name: room_name,
+                                owner: user_id
+                            });
+                            
+                            newroom.saveRoom(function(err, result) {
+                                if (err) {
+                                    sendError(socket, 'room', '404', '새로운 방 생성 중 오류 발생');
+                                }
+                                if(result) {
+                                    var room_id = room_ids[user_id];
+                                    room_ids[user_id] = result._id.toString();
+                                    console.log(room_ids);
+                                    socket.leave(room_id);
+                                    socket.join(result._id);
+                                    roomRefresh(database, user._id, socket);
+                                    sendAlert(socket, 'room', '200', room_name + ' 새로 생성');
+                                    return;
+                                }
+                                
+                            });
+                        } else {
+                            sendAlert(socket, 'room', '404', '이미 존재하는 방의 이름입니다.');
+                        }
+                        return;
+                    });
                 } else {
-                    console.log('방을 새로 만듭니다.');
-
-                    socket.join(room.roomId);
-                    console.log(io.sockets.sockets[room.roomId]);
-                    console.log(io.sockets.allSockets());
-                    //console.log(io.sockets.in(room.roomId));
-
-                } 
-
-
-
+                    sendAlert(socket, 'room', '404', '10자 이내의 방 이름으로 설정해주세요');
+                }
+                
             } 
 
-            else if (room.command === 'update') {
+            /*else if (room.command === 'update') {
                 var curRoom = io.sockets.adapter.rooms[room.roomId];
                 curRoom.id = room.roomId;
                 curRoom.name = room.roomName;
                 curRoom.owner = room.roomOwner;
-            } 
+            } */
 
             else if (room.command === 'out') {
                 console.log('room.out 호출됨');
@@ -503,6 +532,7 @@ io.sockets.on('connection', function(socket) {
                                         socket.emit('room', {command: 'out', roomName : room_name});
                                     }
                                     console.log(room_ids);
+                                    roomRefresh(database, user._id, socket);
                                     
                                     // 방장 클라에게 이벤트 전송
                                     sendAlert(socket, 'room', '200', '요청한 방 삭제 완료');
@@ -618,6 +648,10 @@ function roomRefresh(database, user_id, socket) {
         socket.emit('room', data);
         return;
     });
+}
+
+function myTrim(x) {
+  return x.replace(/^\s+|\s+$/gm,'');
 }
 
 // delete 방장, 참가자 모두 삭제 후, (out)이벤트 발생 -> 재 요청 -> 방 새로고침 이벤트 (refresh) 발생, 
