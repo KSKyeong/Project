@@ -311,27 +311,6 @@ io.sockets.on('connection', function(socket) {
                 }  
             });
 
-            /*database.RoomModel.addchats(room_id, message.data, sender_id, function(err, result) {
-                if(err) {
-                    sendError(socket, 'message', '404', '메시지 저장 중 오류 발생');
-                    return;
-                }
-                console.log('-----------');
-                console.dir(result);
-
-                if(result.nModified == 1) {
-                    // 2. 방 내의 클라이언트들에게 이벤트 발생
-                    message.self = false;
-                    socket.to(room_id).emit('message', message);
-                    message.self = true;
-                    socket.emit('message', message);
-                    return;
-                } else {
-                    sendError(socket, 'room', '404', '방 정보 업데이트 중 오류 발생');
-                    return;
-                }
-
-            });*/
             return;
 
         });
@@ -436,7 +415,9 @@ io.sockets.on('connection', function(socket) {
                         return;
 
                     } else {
-                        sendAlert(socket, 'room', '404', '존재하지 않는 방 이름입니다.');
+                        roomRefresh(database, user._id, socket);
+                        sendAlert(socket, 'room', '404', '삭제되었거나, 존재하지 않는 방 이름입니다.');
+                        
                         return;
                     }
                 });
@@ -469,6 +450,7 @@ io.sockets.on('connection', function(socket) {
             } 
 
             else if (room.command === 'out') {
+                console.log('room.out 호출됨');
 
                 // 입력 값으로 공백을 넘겼다면 다시 입력 하라고 한다.
                 if(room.roomName == "") {
@@ -496,6 +478,9 @@ io.sockets.on('connection', function(socket) {
                         // 방 전체 삭제 및 leave, 알림 발송
                         if(outroom.owner == user_id) { 
                             console.log('방장의 권한으로 방을 삭제 합니다.');
+                            /*console.log(outroom._id);
+                            console.log(outroom._id.toString());
+                            console.log(outroom._id + '');*/
                             database.RoomModel.deleteroom(outroom._id, function(err, result) {
                                 if(err) {
                                     console.log('방 삭제 중 오류 발생');
@@ -506,18 +491,21 @@ io.sockets.on('connection', function(socket) {
                                 if(result.deletedCount > 0) { // room 컬렉션을 삭제한 경우
                                     console.log('방이 삭제되었습니다.');
                                     
-                                    // 같은 방에 있던 클라이언트들에게 event 전송
-                                    socket.to(room_id).emit('room', {command: 'deleted'});
-                                    if(room_ids[user_id]) {
+                                    // 삭제한 방에 있던 클라이언트들에게 event 전송
+                                    var output = {command: 'deleted'}
+                                    socket.to(outroom._id.toString()).emit('room', output);
+                                    if(outroom._id == room_ids[user_id]) {
                                         var room_id = room_ids[user_id];
                                         delete room_ids[user_id];
                                         socket.leave(room_id);
                                         console.log('방 leave 및 room_ids 배열 내 삭제 완료');
+                                        
+                                        socket.emit('room', {command: 'out', roomName : room_name});
                                     }
                                     console.log(room_ids);
                                     
                                     // 방장 클라에게 이벤트 전송
-                                    socket.emit('room', {command: 'out', roomName : room_name});
+                                    sendAlert(socket, 'room', '200', '요청한 방 삭제 완료');
 
                                     return;
 
@@ -554,7 +542,7 @@ io.sockets.on('connection', function(socket) {
                                         socket.emit('room', {command: 'out', roomName : room_name});
                                         return;
                                     } else {
-                                        //오류 처리
+                                        console.log('이 부분을 수정해야할듯함');
                                     }
                                 });
 
@@ -564,6 +552,14 @@ io.sockets.on('connection', function(socket) {
                         }
 
                     } else {
+                        if(room_ids[user_id]) {
+                            console.log('삭제된 방을 leave 한다(클라이언트)');
+                            var room_id = room_ids[user_id];
+                            delete room_ids[user_id];
+                            socket.leave(room_id);
+                            console.dir(room_ids);
+                            console.log('방 leave 및 room_ids 배열 내 삭제 완료');
+                        }
                         sendError(socket, 'room', '404', '방이 삭제 되었거나, 찾을 수 없음');
                         return;
                     }
@@ -571,37 +567,20 @@ io.sockets.on('connection', function(socket) {
 
                 });
 
-            }
+            } 
             
             else if (room.command === 'refresh') {
                 /*var data = {message: ''};*/
                 console.log('refresh 이벤트 받음(서버 단)');
                 roomRefresh(database, user._id, socket);
                 return;
-            }
+            } 
 
             else { // 알 수 없는 command 받았을 때.   
                 sendError(socket, 'room', '404', '알 수 없는 이벤트 요청임');
             }
             
         });
-        
-        // 로그아웃 - 불필요?
-        /*socket.on('logout', function(logout) {
-            console.log('로그아웃을 진행합니다');
-            console.log(socket.handshake.session.passport.user);
-            var logout_idx = socket.handshake.session.email;
-            delete login_ids[logout_idx];
-            console.log(login_ids);
-            if (socket.handshake.session.email || socket.handshake.session._id) {
-                delete socket.handshake.session.email;
-                delete socket.handshake.session._id;
-                socket.handshake.session.save();
-            }
-            var statusObj = {message:'로그아웃되었습니다.'};
-            socket.emit('logouted', statusObj);
-
-        });*/
         
     } else { // 로그인부터 하게끔 리다이렉팅
         var destination = '/login';

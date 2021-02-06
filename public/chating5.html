@@ -449,8 +449,8 @@
                             console.log('room-deleted 이벤트 발생');
                             /*var room_name = $('#curRoomName').val();*/
                             deleteAll();
-                            socket.emit('room', {command : 'out', roomName : $('#curRoomName').val()})
-                            alert('방이 삭제되었습니다');
+                            socket.emit('room', {command : 'out', roomName : $('#curRoomName').val()});
+                            socket.emit('room', {command : 'refresh'});
                             
                         }
                         
