@@ -146,6 +146,89 @@ var showfriends = function (req, res) {
     }
 };
 
+var myfriends = function (req, res) {
+    console.log('friend 모듈 안에 있는 myfriends 호출됨.');
+
+    // 사용자 인증된 상태일 때 조회 권한
+    if (req.isAuthenticated() && req.user != undefined) {
+        // 데이터베이스 객체가 초기화된 경우
+        var database = req.app.get('db');
+        if (database.db) {
+
+            // 요청한 유저의 친구를 보여준다
+            // 나 자신의 친구 리스트를 보여준다면
+            console.log('_id : ' + req.user._id);
+            if (req.user._id) {
+                console.log('자기 자신의 친구 리스트 조회');
+
+                database.FriendModel.load_all(req.user._id, function (err, results) {
+                    if (err) {
+                        console.error('친구 목록 조회 중 에러 발생 : ' + err.stack);
+
+                        res.writeHead('200', {
+                            'Content-Type': 'text/html;charset=utf8'
+                        });
+                        res.write('<h2>친구 목록 조회 중 에러 발생</h2>');
+                        res.write('<p>' + err.stack + '</p>');
+                        res.end();
+
+                        return;
+                    }
+                    /*console.dir(results);*/
+                    if (results) {
+
+                        var user = req.user;
+                        res.writeHead('200', {
+                            'Content-Type': 'text/html;charset=utf8'
+                        });
+
+                        // 뷰 템플레이트를 이용하여 렌더링한 후 전송
+                        // user_info에 사용자의 정보 함께 전송
+                        var context = {
+                            title: '친구 리스트',
+                            friends: results,
+                            user_info: user
+
+                        };
+
+                        req.app.render('listfriend', context, function (err, html) {
+                            if (err) {
+                                console.error('응답 웹문서 생성 중 에러 발생 : ' + err.stack);
+
+                                res.write('<h2>응답 웹문서 생성 중 에러 발생</h2>');
+                                res.write('<p>' + err.stack + '</p>');
+                                res.end();
+
+                                return;
+                            }
+
+                            //					console.log('응답 웹문서 : ' + html);
+                            res.end(html);
+                        });
+
+                    } else {
+                        res.writeHead('200', {
+                            'Content-Type': 'text/html;charset=utf8'
+                        });
+                        res.write('<h2>친구 목록 조회 실패</h2>');
+                        res.end();
+                    }
+                });
+
+            } 
+
+        } else {
+            res.writeHead('200', {
+                'Content-Type': 'text/html;charset=utf8'
+            });
+            res.write('<h2>데이터베이스 연결 실패</h2>');
+            res.end();
+        }
+    } else { // 사용자 인증이 안 된 경우 (로그인으로 전송)
+        res.redirect('/login');
+    }
+};
+
 var showprofile = function (req, res) {
     var paramId = req.body.id || req.query.id || req.params.id;
     console.log('/profile/' + paramId + ' 패스 요청됨.');
@@ -249,6 +332,7 @@ var req_friend = function (req, res) {
     if (!req.user || req.isAuthenticated() != true) {
         console.log('사용자 인증이 안 된 상태임');
         res.redirect('/login');
+        return;
     } else {
 
         var database = req.app.get('db');
@@ -300,6 +384,15 @@ var req_friend = function (req, res) {
                         res.end();
                         return;
                     });
+                } else { // 없는 이름을 가진 사람
+                    console.log('없는 이름 요청함');
+                    res.writeHead('200', {
+                        'Content-Type': 'text/html;charset=utf8'
+                    });
+                    res.write('<h2>요청한 이름을 가진 사용자를 찾을 수 없습니다.</h2>');
+                    
+                    res.end();
+                    return;
                 }
             });
 
@@ -498,3 +591,5 @@ module.exports.showprofile = showprofile;
 module.exports.req_friend = req_friend;
 module.exports.friendrequest = friendrequest;
 module.exports.deletefriend = deletefriend;
+module.exports.myfriends = myfriends;
+

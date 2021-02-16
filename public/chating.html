@@ -1,467 +1,689 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>채팅 클라이언트 05</title>
-        
-        <link href="./semantic.min.css" rel="stylesheet" >
-        <style>
-		* {
-			padding:0;
-			margin:0;
-			box-sizing:border-box;
-		}
-		
-		html {
-			width:100%;
-			height:100%;
-		}
-		
-		body {
-			width:100%;
-			height:100%;
-			color: #000;
-			background-color: #fff;
-		}
-				
-		.container {
-			width:100%;
-			height:100%;
-			display:flex;
-			flex-flow:column wrap;
-			align-items:center;
-			justify-content:center;
-		}
 
-		#cardbox {
-			width:94%;
-			height:94%;
-			padding-left:0.4em;
-			padding-right:0.4em;
-		}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
 
-		#iconImage {
-			display:inline;
-		}
-		
-		#titleText {
-			font-size:1.4em;
-			font-weight:bold;
-			color:#777;
-		}
-		
-		#contentsText {
-			color:#999;
-		}
-		
-		#result {
-			height:14em;
-			overflow:auto;
-		}
-		
-		
-		.discussion {
-		  	list-style: none;
-		  	background: #ededed;
-		  	margin: 0;
-		  	padding: 0 0 50px 0;
-		}
-		
-		.discussion li {
-		  	padding: 0.5em;
-		  	overflow: hidden;
-		  	display: flex;
-		}
-		
-		.discussion .avatar {
-		  	width: 40px;
-		  	position: relative;
-		}
-		
-		.discussion .avatar img {
-		  	display: block;
-		  	width: 100%;
-		}
-		
-		.other .avatar:after {
-		  	content: "";
-		  	position: absolute;
-		  	top: 0;
-		  	right: 0;
-		  	width: 0;
-		  	height: 0;
-		  	border: 5px solid white;
-		  	border-left-color: transparent;
-		  	border-bottom-color: transparent;
-		}
-		
-		.self {
-		  	justify-content: flex-end;
-		  	align-items: flex-end;
-		}
-		
-		.self .messages {
-		  	order: 1;
-		  	border-bottom-right-radius: 0;
-		}
-		
-		.self .avatar {
-		  	order: 2;
-		}
-		
-		.self .avatar:after {
-		  	content: "";
-		  	position: absolute;
-		  	bottom: 0;
-		  	left: 0;
-		  	width: 0;
-		  	height: 0;
-		  	border: 5px solid white;
-		  	border-right-color: transparent;
-		  	border-top-color: transparent;
-		  	box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-		}
-		
-		.messages {
-		  	background: white;
-		  	padding: 10px;
-		  	border-radius: 2px;
-		  	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-		}
-		
-		.messages p {
-		  	font-size: 0.8em;
-		  	margin: 0 0 0.2em 0;
-		}
-		
-		.messages time {
-		  	font-size: 0.7em;
-		  	color: #ccc;
-		}
-		
-		
-	</style>
-		
-		<script src="jquery-3.5.1.min.js"></script>     
-		<script src="socket.io.js"></script>
-        <script src="semantic.min.js"></script>
-        
-        <script>
-            var host;
-            var port;
-            var socket;
-            
-         	// 문서 로딩 후 실행됨
-            $(function() {
+    <title>채팅방</title>
 
-            	// 연결하기 버튼 클릭 처리
-				/*$("#connectButton").on('click', function(event) {
-					println('connectButton이 클릭되었습니다.');
-					
-                    connectToServer();
-                });*/
-                // 바로 채팅 서버에 연결?
-                connectToServer();
-                
-                // 로그인 버튼 클릭 시 처리 -> 연결과 동시에 로그인 할 것
-                $("#loginButton").click( function(event) {
-                    var email = $('#emailInput').val();
-                    var password = $('#passwordInput').val();
-                    
+    <link href="./semantic.min.css" rel="stylesheet">
 
-                    var output = {email:email, password:password};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
 
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
+        html {
+            width: 100%;
+            height: 150%;
+            /*추가한 부분*/
+            display: flex;
+            flex-flow: column wrap;
+            overflow: auto;
+        }
 
-                    socket.emit('login', output);
-                });
-                
-                $("#logoutButton").click( function(event) {
-                    
-                    if (socket == undefined) {
-                        alert('로그인이 되어 있지 않습니다. 먼저 로그인하세요.');
-                        return;
-                    }
-                    
-                    socket.emit('logout');
-                });
-                
-				// 전송 버튼 클릭 시 처리
-                $("#sendButton").on('click', function(event) {
-                	
-                	// chattype 구분
-                	var chattype = $('#chattype option:selected').val();
+        body {
+            width: 100%;
+            height: 100%;
+            color: #000;
+            background-color: #fff;
+        }
 
-                	/*var sender = $('#senderInput').val();*/
-                    var recipient = $('#recipientInput').val();
-                    var data = $('#dataInput').val();
+        .container {
+            width: 98%;
+            height: 100%;
+            display: flex;
+            flex-flow: column wrap;
+            align-items: center;
+            justify-content: center;
+        }
 
-                    var output = {recipient:recipient, command:chattype, type:'text', data:data};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
-                	
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
-                    
-                    socket.emit('message', output);
-                });
+        #cardbox {
+            width: 98%;
+            height: 120%;
 
-                
-                
-				
-				
-             	// 방만들기 버튼 클릭 시 처리
-                $("#createRoomButton").on('click', function(event) {
-                    
-                    connectToServer();
-                    var roomId = $('#roomIdInput').val();
-                    var roomName = $('#roomNameInput').val();
-                    var id = $('#idInput').val();
-                    
-                    var output = {command:'create', roomId:roomId, roomName:roomName, roomOwner:id};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+            padding-left: 0.4em;
+            padding-right: 0.4em;
+            overflow-y: auto;
+        }
 
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
+        #iconImage {
+            display: inline;
+        }
 
-                    socket.emit('room', output);
-                });
-             	
-             	// 방이름바꾸기 버튼 클릭 시 처리
-                $("#updateRoomButton").on('click', function(event) {
-                    var roomId = $('#roomIdInput').val();
-                    var roomName = $('#roomNameInput').val();
-                    var id = $('#idInput').val();
-                    
-                    var output = {command:'update', roomId:roomId, roomName:roomName, roomOwner:id};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+        #titleText {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #777;
+        }
 
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
+        #contentsText {
+            color: #999;
+        }
 
-                    socket.emit('room', output);
-                });
+        #result {
+            height: 100em;
+            overflow: auto;
+        }
 
-             	// 방없애기 버튼 클릭 시 처리
-                $("#deleteRoomButton").on('click', function(event) {
-                    var roomId = $('#roomIdInput').val();
-                    
-                    var output = {command:'delete', roomId:roomId};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+        #roomsdisplay {
+            height: 10em;
+            overflow: auto;
+            padding: 1em;
+        }
 
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
+        #roomcontainer {
+            height: 50em;
+            overflow: auto;
+            padding: 1em;
+        }
 
-                    socket.emit('room', output);
-                });
+        /*.ui grid .ten wide column{
+            height: 50em;
+        }*/
 
-             	// 방입장하기 버튼 클릭 시 처리
-                $("#joinRoomButton").on('click', function(event) {
-                    var roomId = $('#roomIdInput').val();
+        #roomgrid {
+            height: 10em;
+        }
 
-                    var output = {command:'join', roomId:roomId};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+        #roominfogrid {
+            height: 1em;
+        }
 
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
 
-                    socket.emit('room', output);
-                });
-             	
-             	// 방나가기 버튼 클릭 시 처리
-                $("#leaveRoomButton").on('click', function(event) {
-                    var roomId = $('#roomIdInput').val();
+        .discussion {
+            list-style: none;
+            background: #ededed;
+            margin: 0;
+            padding: 0 0 50px 0;
+        }
 
-                    var output = {command:'leave', roomId:roomId};
-                    console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+        .discussion li {
+            padding: 0.5em;
+            overflow: hidden;
+            display: flex;
+        }
 
-                    if (socket == undefined) {
-                        alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
-                        return;
-                    }
+        .discussion .avatar {
+            width: 60px;
+            position: relative;
+        }
 
-                    socket.emit('room', output);
-                });
-             	
+        .discussion .avatar img {
+            display: block;
+            width: 100%;
+        }
+
+        .rooms {
+            list-style: none;
+            background: #d4efff;
+            margin: 0;
+            padding: 10 0 0px 0;
+        }
+
+        .rooms li {
+            padding: 0.5em;
+            overflow: hidden;
+            display: flex;
+        }
+
+
+        .other .avatar:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border: 5px solid white;
+            border-left-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        /*.other .avatar img{
+		  	width: 60px;
+            height: auto;
+		}*/
+
+        .self {
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .self .messages {
+            order: 1;
+            border-bottom-right-radius: 0;
+        }
+
+        .self .avatar {
+            order: 2;
+        }
+
+        .self .avatar:after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border: 5px solid white;
+            border-right-color: transparent;
+            border-top-color: transparent;
+            box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .messages {
+            background: white;
+            padding: 10px;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            overflow: auto;
+        }
+
+        .messages p {
+            font-size: 1em;
+            margin: 0 0 0.2em 0;
+        }
+
+        .messages time {
+            font-size: 0.7em;
+            color: #ccc;
+        }
+
+    </style>
+
+    <script src="jquery-3.5.1.min.js"></script>
+    <script src="socket.io.js"></script>
+    <script src="semantic.min.js"></script>
+
+    <script>
+        var host;
+        var port;
+        var socket;
+
+        // 문서 로딩 후 실행됨
+        $(function() {
+
+
+            connectToServer();
+
+            // 로그인 버튼 클릭 시 처리 -> 연결과 동시에 로그인 할 것
+            $("#loginButton").click(function(event) {
+                var email = $('#emailInput').val();
+                var password = $('#passwordInput').val();
+
+
+                var output = {
+                    email: email,
+                    password: password
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('login', output);
             });
-            
-			// 서버에 연결하는 함수 정의
-            function connectToServer() {
-                
-                var options = {'forceNew':true};
-                var url = 'http://localhost:3701';
-                socket = io.connect(url, options);
 
-                socket.on('connect', function() {
+            $("#logoutButton").click(function(event) {
+
+                if (socket == undefined) {
+                    alert('로그인이 되어 있지 않습니다. 먼저 로그인하세요.');
+                    return;
+                }
+
+                socket.emit('logout');
+            });
+
+            // 전송 버튼 클릭 시 처리
+            $("#sendButton").on('click', function(event) {
+
+
+                var data = $('#dataInput').val();
+                $('#dataInput').val("");
+
+                var output = {
+                    data: data
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('message', output);
+            });
+
+
+
+
+
+            // 방만들기 버튼 클릭 시 처리
+            $("#createRoomButton").on('click', function(event) {
+
+                var roomName = $.trim($('#newRoomName').val());
+
+                var output = {
+                    command: 'create',
+                    roomName: roomName
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('room', output);
+            });
+
+            // 방이름바꾸기 버튼 클릭 시 처리
+            $("#updateRoomButton").on('click', function(event) {
+                var roomId = $('#roomNameInput').val();
+                var roomName = $('#roomNameInput').val();
+                var id = $('#idInput').val();
+
+                var output = {
+                    command: 'update',
+                    roomId: roomId,
+                    roomName: roomName,
+                    roomOwner: id
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('room', output);
+            });
+
+            // 방없애기 버튼 클릭 시 처리
+            $("#deleteRoomButton").on('click', function(event) {
+                var roomId = $('#roomNameInput').val();
+
+                var output = {
+                    command: 'delete',
+                    roomId: roomId
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('room', output);
+            });
+
+            // 방 입장 버튼 클릭 시 처리
+            $("#roomInButton").on('click', function(event) {
+                var roomName = $('#roomNameInput').val();
+
+                var output = {
+                    command: 'in',
+                    roomName: roomName
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('room', output);
+            });
+
+
+            // 방나가기 버튼 클릭 시 처리
+            $("#roomOutButton").on('click', function(event) {
+                var roomName = $('#roomNameInput').val();
+                /*var roomName = $('#curRoomName').val();*/
+
+                var output = {
+                    command: 'out',
+                    roomName: roomName
+                };
+                console.log('서버로 보낼 데이터 : ' + JSON.stringify(output));
+
+                if (socket == undefined) {
+                    alert('서버에 연결되어 있지 않습니다. 먼저 서버에 연결하세요.');
+                    return;
+                }
+
+                socket.emit('room', output);
+            });
+
+        });
+
+        // 서버에 연결하는 함수 정의
+        function connectToServer() {
+
+            var options = {
+                'forceNew': true
+            };
+            var url = 'YOUR_URL';
+
+            socket = io.connect(url, options);
+
+            socket.on('connect', function() {
+                //                    deleteAll();
+
+                /*alert('채팅 서버에 연결 되었습니다');*/
+
+                socket.on('redirect', function(destination) {
+                    window.location.href = destination;
+                });
+
+                socket.on('logined', function(message) {
                     deleteAll();
-                	println('웹소켓 서버에 연결되었습니다. : ' + url);
-                    alert('채팅 서버에 연결 되었습니다');
-                    
-                    socket.on('logined', function(message) {
-                        deleteAll();
-                        console.log(JSON.stringify(message));
-                        // 로그인 성공 시, 그 사용자가 소속되어있는 채팅 방의 리스트를 나열해준다.
-                        
-                        $.each(message.rooms, function(index, room){ 
-                            listrooms(room);
+                    console.log(JSON.stringify(message));
+                    // 로그인 성공 시, 그 사용자가 소속되어있는 채팅 방의 리스트를 나열해준다.
+
+                    $.each(message.rooms, function(index, room) {
+                        listrooms(room);
+                    });
+                    alert('' + message.message);
+                });
+
+                socket.on('logouted', function(message) {
+                    // 로그아웃 진행 시, 채팅방과, 채팅 목록 지워준다.
+
+                    console.log(JSON.stringify(message));
+                    alert('' + message.message);
+                    deleteAll();
+                    window.location.href = '/public/chating5.html';
+
+                });
+
+                socket.on('message', function(message) {
+                    console.log(JSON.stringify(message));
+                    // 날아오는 데이터 {data : 객체, self : 자신이 전송한 메시지인가 구분자}
+
+                    printmessage(message);
+                });
+
+                socket.on('response', function(response) {
+                    console.log(JSON.stringify(response));
+                    alert('응답 메시지를 받았습니다. : ' + response.command + ', ' + response.code + ', ' + response.message);
+                });
+
+                socket.on('error', function(error) {
+                    console.log(JSON.stringify(error));
+                    alert('에러 메시지를 받았습니다. : ' + error.command + ', ' + error.code + ', ' + error.message);
+                });
+
+                socket.on('alert', function(alerts) {
+                    console.log(JSON.stringify(alerts));
+                    alert('알림 발생' + alerts.command + ', ' + alerts.code + ', ' + alerts.message);
+                });
+
+                // 그룹 채팅에서 방과 관련된 이벤트 처리
+                // data.command : 
+                socket.on('room', function(data) {
+                    console.log(JSON.stringify(data));
+
+                    if (data.command == 'in') { // 채팅 방에 접속 했을 때.
+                        console.log('방 점속 이벤트 처리 가능');
+                        println(data.message);
+
+                        // 추가
+                        socket.emit('room', {
+                            command: 'refresh'
                         });
-                        alert('' + message.message);
-                    });
-                    
-                    socket.on('logouted', function(message) {
-                        // 로그아웃 진행 시, 채팅방과, 채팅 목록 지워준다.
-                        
-                        console.log(JSON.stringify(message));
-                        alert('' + message.message);
+
+                    } else if (data.command == 'init') {
+                        console.log('방 초기 설정 이벤트 처리 가능');
+                        var room_name = data.room_init.name;
+
+                        curRoom(room_name);
+                        initChats(data.room_init.chats, data.user_id);
+
+                        // 추가
+                        socket.emit('room', {
+                            command: 'refresh'
+                        });
+
+
+                    } else if (data.command == 'out') {
+                        // out 이벤트 받았을 때, 기존의 채팅 기록 사라져야 함.
                         deleteAll();
-                        
-                    });
+                        console.log('room_out 이벤트 발생');
+                        console.dir(data);
+                        // 대화 내용 리셋, 방 리프레쉬
+                        socket.emit('room', {
+                            command: 'refresh'
+                        });
+                        alert(data.roomName + '을 나왔습니다.');
 
-                    socket.on('message', function(message) {
-                        console.log(JSON.stringify(message));
+                    } else if (data.command == 'deleted') {
+                        console.log('room-deleted 이벤트 발생');
+                        /*var room_name = $('#curRoomName').val();*/
+                        deleteAll();
+                        socket.emit('room', {
+                            command: 'out',
+                            roomName: $('#curRoomName').val()
+                        });
+                        socket.emit('room', {
+                            command: 'refresh'
+                        });
 
-                        println('<p>수신 메시지 : ' + message.sender + ', ' + message.recipient + ', ' + message.command + ', ' + message.data + '</p>');
-                    });
+                    } else if (data.command == 'refresh') {
+                        console.log('refresh 이벤트 받음(클라 단)');
+                        /*if(data.message != '') {
+                            alert(data.message);
+                        }*/
+                        deleteRooms(function() { // 방 목록을 지워준 뒤 새로운 방 목록을 나타내준다.
+                            $.each(data.room_list, function(index, room) {
+                                listrooms(room);
+                            });
 
-                    socket.on('response', function(response) {
-                    	console.log(JSON.stringify(response));
-                    	println('응답 메시지를 받았습니다. : ' + response.command + ', ' + response.code + ', ' + response.message);
-                    });
-                    
-                    socket.on('error', function(error) {
-                    	console.log(JSON.stringify(error));
-                    	println('에러 메시지를 받았습니다. : ' + error.command + ', ' + error.code + ', ' + error.message);
-                    });
+                        });
 
-                    socket.on('alert', function(alerts) {
-                    	console.log(JSON.stringify(alerts));
-                    	alert('알림 발생' + alerts.command + ', ' + alerts.code + ', ' + alerts.message);
-                    });
-                    
-                    // 그룹 채팅에서 방과 관련된 이벤트 처리
-                    socket.on('room', function(data) {
-                        console.log(JSON.stringify(data));
-
-                        println('<p>방 이벤트 : ' + data.command + '</p>');
-                        println('<p>방 리스트를 받았습니다.</p>');
-                        if (data.command == 'list') { // 방 리스트
-                        	var roomCount = data.rooms.length;
-                        	$("#roomList").html('<p>방 리스트 ' + roomCount + '개</p>');
-                        	for (var i = 0; i < roomCount; i++) {
-                        		$("#roomList").append('<p>방 #' + i + ' : ' + data.rooms[i].id + ', ' + data.rooms[i].name + ', ' + data.rooms[i].owner + '</p>');
-                        	}
-                        }
-                    });
-
+                    } else {
+                        alert('알 수 없는 방 이벤트 발생!');
+                    }
                 });
 
-                socket.on('disconnect', function() {
-                    
-                    println('웹소켓 연결이 종료되었습니다.');
-                    alert('웹소켓 연결이 종료되었습니다.');
-                    alert('다시 로그인 해주세요.');
-                });
+            });
 
+            socket.on('disconnect', function() {
+
+                println('웹소켓 연결이 종료되었습니다.');
+                alert('웹소켓 연결이 종료되었습니다.');
+                alert('다시 로그인 해주세요.');
+                window.location.href = '/public/chating5.html';
+            });
+
+        }
+
+
+
+
+        function println(data) {
+            console.log(data);
+            $('#chat_init').append('<li>' + data + '</li>');
+        }
+
+        function listrooms(room) {
+            $('#rooms').append('<div><li class="ui equal width grid"><div class="column">' + room.name + '</div>' + '<div class="column">' + room.owner.name + '</div><div class="column">' + room.users.length + '</div><div class="column">' + room.created_at + '</div></li></div>');
+        }
+
+        function curRoom(name) {
+            $('#curRoom *').remove();
+            $('#chat_init *').remove();
+            console.log(name);
+            $('#curRoom').append('<p>' + name + '</p><input type="hidden" id="curRoomName" value="' + name + '">');
+        }
+
+        // 새로 받은 메시지 처리 함수?
+        function printmessage(message) {
+            console.log(message.data);
+            var sender = message.data.writer_id;
+            var content = message.data.content;
+            var created_at = message.data.created_at;
+            if (!message.self) {
+                $('#chat_init').append('<li class="other">' + '<div class="avatar"><h10>' + sender.name + '<h10>' + sender.email + '</h10><img src="/public/images/' + sender._id + '.png" /></div><div class="messages"><p>' + content + '</p><time>' + created_at + '</time></div></li>');
+            } else {
+                $('#chat_init').append('<li class="self">' + '<div class="avatar"><h10>' + sender.name + '<h10>' + sender.email + '</h10><img src="/public/images/' + sender._id + '.png" /></div><div class="messages"><p>' + content + '</p><time>' + created_at + '</time></div></li>');
             }
-            
-            // 채팅방 리스트 관련 함수
-            // Ajax 통신 필요한가? -> socket으로만 가능할 것 같다. 혹은 vue.js 사용하면 reactive 기능 쉽게 사용 가능
-            
-            
-			function println(data) {
-				console.log(data);
-				$('#result').append('<p>' + data + '</p>');
-			}
-            
-            function listrooms(room) {
-				
-				$('#rooms').append('<p>' + room.name + ', ' + room.owner + ', ' + room.created_at + ', ' + '</p>');
-			}
-            
-            // 방 목록 및, 채팅 기록들 지워주는 함수
-            function deleteAll() {
-				console.log('deletAll 호출됨');
-				$('#result *').remove();
-                $('#rooms *').remove();
-			}
-        </script>
-	</head>
+        }
+
+        function initChats(chats, user_id) {
+            chats.forEach(function(chat) {
+                console.log(chat.writer_id._id + ', ' + user_id);
+                if (chat.writer_id._id != user_id) {
+                    $('#chat_init').append('<li class="other">' + '<div class="avatar"><h10>' + chat.writer_id.name + '</h10><h10>' + chat.writer_id.email + '</h10><img src="/public/images/' + chat.writer_id._id + '.png" /></div><div class="messages"><p>' + chat.content + '</p><time>' + chat.created_at + '</time></div></li>');
+                } else {
+                    $('#chat_init').append('<li class="self">' + '<div class="avatar"><h10>' + chat.writer_id.name + '</h10><h10>' + chat.writer_id.email + '</h10><img src="/public/images/' + chat.writer_id._id + '.png" /></div><div class="messages"><p>' + chat.content + '</p><time>' + chat.created_at + '</time></div></li>');
+                }
+
+            });
+
+        }
+
+        // 방 목록 및, 채팅 기록들 지워주는 함수
+        function deleteAll() {
+            console.log('deletAll 호출됨');
+            /*$('#result *').remove();*/
+            $('#rooms *').remove();
+            $('#curRoom *').remove();
+            $('#chat_init *').remove();
+        }
+
+        function deleteRooms(callback) {
+            console.log('deleteRooms 호출됨');
+
+            $('#rooms *').remove();
+            callback();
+        }
+
+    </script>
+</head>
+
 <body>
+
+
     <div class="container">
-		
-		<div id="cardbox" class="ui blue fluid card">
-            <h3>채팅 클라이언트 05 : 그룹 채팅하기</h3>
-            <br>
-            <!--<div>
-                <input type="text" id="hostInput" value="localhost" />
-                <input type="text" id="portInput" value="3701" />
 
-                <input type="button" id="connectButton" value="연결하기" />
-            </div>-->
+        <div id="cardbox" class="ui blue fluid card">
             <br>
-            <div class="ui grid">
-                <div class="two wide column">
-            <div class="ui input">
-                
-                <input  type="text" id="emailInput" value="asdf" />
-                    </div>
-                    </div>
-                <div class="two wide column">
-            <div class="ui input">
-                <input class="ui input" type="password" id="passwordInput" value="zxcv" />
+            <div>
+                <div class="left floated author">
+                    <img id="iconImage" class="ui avatar image" src="./images/author.png">
                 </div>
+                <div>
+                    <div id="titleText" class="header">채팅</div>
+                </div>
+            </div>
+
+
+            <!-- 로그인/로그아웃 -->
+            <div>
+                <h4 class="ui horizontal divider header">채팅방 생성</h4>
+                <div class="ui input">
+                    <input maxlength='10' type="text" id="newRoomName" value="" placeholder="방 이름(10자 이내)" trim=true />
+                </div>
+
+                <input class="ui primary button" type="button" id="createRoomButton" value="방 만들기" />
+            </div>
+
+
+            <!-- 방 목록 표시 -->
+            <h4 class="ui horizontal divider header">채팅방 목록</h4>
+            <div class="ui grid" id="roomcontainer">
+
+                <div class="ten wide column">
+                    <div class="ui equal width grid" id="roominfogrid">
+                        <div class="column">
+                            <h6>방 이름</h6>
+                        </div>
+                        <div class="column">
+                            <h6>방장</h6>
+                        </div>
+                        <div class="column">
+                            <h6>멤버 수</h6>
+                        </div>
+                        <div class="column">
+                            <h6>생성일</h6>
+                        </div>
                     </div>
+                </div>
+                <div class="six wide column"></div>
 
-                <input type="button" id="loginButton" value="로그인" />
-                <input type="button" id="logoutButton" value="로그아웃" />
+                <div class="ten wide column" id="roomgrid">
+                    <div class="ui segment" id="roomsdisplay">
+
+                        <ol class="rooms">
+                            <div id="rooms"></div>
+                        </ol>
+
+                    </div>
+                </div>
+                <div class="six wide column" id="roomgrid">
+                    <div>
+                        <div>
+                            <p>채팅방 이름</p>
+                        </div>
+                        <div class="ui input">
+                            <input type="text" id="roomNameInput" value="" />
+                        </div>
+
+                        <input class="ui primary button" type="button" id="roomInButton" value="입장" />
+                    </div>
+                    <br>
+                    <input class="ui primary button" type="button" id="roomOutButton" value="방 나가기" />
+
+                </div>
+            </div>
+            <br>
+
+
+
+            <!-- 결과 표시 -->
+            <h4 class="ui horizontal divider header">메시지</h4><br>
+            <div class="ui center aligned grid">
+                <div id="curRoom">
+
+                </div>
             </div>
 
-            <div><table id = "rooms" border = "1"></table></div>
-            <br>
-
-            <br>
-            <div id="roomList">
+            <div class="ui segment" id="result">
+                <!-- 이전 채팅 불러오기 -->
+                <ol class="discussion" id="chat_init"></ol>
+                <!-- 전송하기 -->
 
             </div>
-            <br>
-            <div>
-                <input type="button" id="joinRoomButton" value="방입장하기" />
-                <input type="button" id="leaveRoomButton" value="방나가기" />
+
+            <div class="eight wide columns">
+                <div class="center floated right aligned">
+                    <br>
+                    <div class="center floated right aligned">
+                        <div class="description">
+                            <span>메시지 데이터 :</span>
+                            <div class="ui input">
+                                <input style="width:500px; height: 80px" type="text" id="dataInput" value="안녕!" />
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <input class="ui primary button" type="button" id="sendButton" value="전송" />
+                    <br><br>
+                </div>
             </div>
-            <br>
-            <div>
 
-                <div><span>받는사람 아이디 :</span> <input type="text" id="recipientInput" value="ALL" /></div>
 
-                <!-- command 선택 <select> 채팅, 그룹채팅 -->
-                <select name="chattype" id="chattype"> 
-                    <option value="chat">채팅</option>
-                    <option value="groupchat" selected>그룹채팅</option>
-                </select>
-
-                <div><span>메시지 데이터 :</span> <input type="text" id="dataInput" value="안녕!"/> </div>
-                <br>
-                <input type="button" id="sendButton" value="전송" />
-            </div>    
-
-            <hr/>
-            <p>결과 : </p>
-            <div id="result"></div>
         </div>
+
     </div>
-        
+
 </body>
+
 </html>

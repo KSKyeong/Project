@@ -3,16 +3,107 @@
 
 <head>
     <meta charset="UTF-8">
+    <link href="/public/semantic.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            color: #000;
+            background-color: #fff;
+        }
+
+        .container {
+            margin-right: auto;
+            margin-left: auto;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        span {
+            color: #333;
+        }
+
+        #board_title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: teal;
+        }
+
+    </style>
+
+    <script src="/public/jquery-3.5.1.min.js"></script>
+    <script src="/public/semantic.min.js"></script>
 </head>
 
 <body>
-    <button onclick="location.href='/public/chating5.html'">Click Me</button>
-    <!--<a onclick="window.open('/public/chating5.html', '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');">
-        Share Page
-    </a>-->
-    <button onclick="window.open('/public/chating5.html', '_blank');">
-        Share Page
-    </button>
+
+    <!--<div class="ui four item menu">
+        <a class="item">게시판</a>
+        <a class="item">친구 목록</a>
+        <a class="item active">채팅방</a>
+        <a class="item active">로그아웃</a>
+    </div>-->
+    <br>
+    <div class="ui pointing menu">
+        <a class="item">
+        
+        </a>
+        <a class="item">
+        
+        </a>
+        <a class="item">
+        
+        </a>
+        <a class="item active" href='/process/listpost?page=0&perPage=2'>
+            게시판
+        </a>
+        <a class="item active" href="/process/myfriends/">
+            친구 목록
+        </a>
+        <a class="item" onclick="window.open('/public/chating5.html', '_blank');">채팅방</a>
+        
+        <div class="right menu">
+            <div class="item">
+            <form  method="post" action="/process/req_friend/" class="item">
+                
+                    <div class="ui transparent icon input">
+                        <input type="text" name="name" placeholder="친구 이름">
+                        
+                        <input class="button" type="submit" value="친구 추가">
+                    </div>
+            </form>
+                </div>
+            <a class="item" href="/logout">
+                로그아웃
+            </a>
+            <a class="item">
+
+            </a>
+            <a class="item">
+
+            </a>
+            <a class="item">
+
+            </a>
+        </div>
+    </div>
+    
+    
+    <div class="ui segment">
+        <p></p>
+    </div>
 
 
 </body>

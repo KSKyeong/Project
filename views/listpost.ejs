@@ -61,12 +61,56 @@
 </head>
 
 <body>
+    <br>
+    <div class="ui pointing menu">
+        <a class="item">
+        
+        </a>
+        <a class="item">
+        
+        </a>
+        <a class="item">
+        
+        </a>
+        <a class="item active" href='/process/listpost?page=0&perPage=2'>
+            게시판
+        </a>
+        <a class="item" href="/process/myfriends/">
+            친구 목록
+        </a>
+        <a class="item" onclick="window.open('/public/chating5.html', '_blank');">채팅방</a>
+        
+        <div class="right menu">
+            <div class="item">
+            <form  method="post" action="/process/req_friend/" class="item">
+                
+                    <div class="ui transparent icon input">
+                        <input type="text" name="name" placeholder="친구 이름">
+                        
+                        <input class="button" type="submit" value="친구 추가">
+                    </div>
+            </form>
+                </div>
+            <a class="item" href="/logout">
+                로그아웃
+            </a>
+            <a class="item">
+
+            </a>
+            <a class="item">
+
+            </a>
+            <a class="item">
+
+            </a>
+        </div>
+    </div>
 
     <div class="container">
-        <br>
+        
 
         <div class="ui raised segment">
-            <a class="ui blue ribbon label">게시판</a>
+            <a class="ui blue ribbon label" href='/process/listpost?page=0&perPage=2'>게시판</a>
             <span id="board_title"><%=title %></span>
 
 
@@ -192,7 +236,7 @@
                     </div>
 
                     <br><br>
-                    <a class="ui button" href='/process/listpost?page=0&perPage=2'>재요청</a>
+                    <!--<a class="ui button" href='/process/listpost?page=0&perPage=2'>재요청</a>-->
                     <a class="ui button" href='/public/addpost.html'>글쓰기</a>
 
                 </div>
