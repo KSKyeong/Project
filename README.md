@@ -61,7 +61,7 @@
 ### 2-1.__Express 프로젝트__
 - 전체적인 구성   
 
-> <img src="/images/프로젝트_구성.PNG" width="70%" height="70%" title="프로젝트 구성" alt="프로젝트 구성"></img>
+> <img src="/images/프로젝트_구성.PNG" width="100%" height="100%" title="프로젝트 구성" alt="프로젝트 구성"></img>
 
 
 
@@ -69,13 +69,13 @@
 ### 2-2. __DB 설계__
 - DB 구성   
 
-> <img src="/images/DB_구성.PNG" width="70%" height="70%" title="DB 구성" alt="DB 구성"></img>
+> <img src="/images/DB_구성.PNG" width="100%" height="100%" title="DB 구성" alt="DB 구성"></img>
 
 <br>
 
 - DB 관계   
 
-> <img src="/images/DB_관계.PNG" width="50%" height="50%" title="DB_관계" alt="DB_관계"></img>
+> <img src="/images/DB_관계.PNG" width="70%" height="70%" title="DB_관계" alt="DB_관계"></img>
 
 
 
@@ -83,18 +83,18 @@
 ### 2-3. __배포__
 - aws ec2 ubuntu 기반 VM 생성   
 
-> <img src="/images/ec2_세부정보.PNG" width="70%" height="70%" title="ec2_세부정보" alt="ec2_세부정보"></img>   
+> <img src="/images/ec2_세부정보.PNG" width="90%" height="90%" title="ec2_세부정보" alt="ec2_세부정보"></img>   
 
 aws Elastic Beanstalk를 활용해볼까 했지만, 전체적인 서버 설정을 해보고 싶어 ec2를 활용하기로 함.<br> 
 Ubuntu 플랫폼을 활용했음.
 
 <br><br>
-> <img src="/images/ec2_보안_inbound.PNG" width="70%" height="70%" title="ec2_보안_inbound" alt="ec2_보안_inbound"></img>   
+> <img src="/images/ec2_보안_inbound.PNG" width="90%" height="90%" title="ec2_보안_inbound" alt="ec2_보안_inbound"></img>   
 
 Inbound로 22(ssh), 80(http), 443(https) 포트를 열어주었음. 
 
 <br><br>
-> <img src="/images/ec2_보안_outbound.PNG" width="70%" height="70%" title="ec2_보안_outbound" alt="ec2_보안_outbound"></img>   
+> <img src="/images/ec2_보안_outbound.PNG" width="90%" height="90%" title="ec2_보안_outbound" alt="ec2_보안_outbound"></img>   
 
 Outbound를 전체로 설정 해줌.
 
@@ -104,7 +104,7 @@ Outbound를 전체로 설정 해줌.
 - mlab 클라우드 기반 MongoDB 생성   
 
 
-> <img src="/images/cloud_MongoDB.PNG" width="70%" height="70%" title="cloud_MongoDB" alt="cloud_MongoDB"></img>   
+> <img src="/images/cloud_MongoDB.PNG" width="90%" height="90%" title="cloud_MongoDB" alt="cloud_MongoDB"></img>   
 
 cloud MongoDB를 활용하였다. <br>
 데이터 베이스 접속 허용 IP는 내 ec2 인스턴스의 Elastic IP와, 현재 로컬 PC의 IP로 설정해두었다.
@@ -112,7 +112,7 @@ cloud MongoDB를 활용하였다. <br>
 
 - VM 내에 git 연동, 프로젝트 clone   
 
-> <img src="/images/VM_git.PNG" width="80%" height="80%" title="VM_git" alt="VM_git"></img>    
+> <img src="/images/VM_git.PNG" width="95%" height="95%" title="VM_git" alt="VM_git"></img>    
    
    
 VM에 ssh 접속 후, git 설치 및 연동, 프로젝트를 pull 한 상태이다. 
@@ -123,13 +123,13 @@ VM에 ssh 접속 후, git 설치 및 연동, 프로젝트를 pull 한 상태이�
 
 
 <br><br>
-> <img src="/images/server_run.PNG" width="80%" height="80%" title="server_run" alt="server_run"></img>   
+> <img src="/images/server_run.PNG" width="95%" height="95%" title="server_run" alt="server_run"></img>   
 
     node app.js
 
 명령어로 서버 프로그램 실행 가능
 
-> <img src="/images/forever_start.PNG" width="80%" height="80%" title="forever_start" alt="forever_start"></img>   
+> <img src="/images/forever_start.PNG" width="95%" height="95%" title="forever_start" alt="forever_start"></img>   
 
 
     forever start app.js
@@ -140,13 +140,13 @@ forever 모듈을 통해 장애에 대처할 수 있다.
 <br><br>
 - 도메인 구매(freenom) DNS name server 등록(AWS Route53)   
 
-> <img src="/images/freenom_myDomain.PNG" width="70%" height="70%" title="freenom_myDomain" alt="freenom_myDomain"></img> 
+> <img src="/images/freenom_myDomain.PNG" width="90%" height="90%" title="freenom_myDomain" alt="freenom_myDomain"></img> 
 
 freenom에서 sangking.tk 도메인을 무료로 구매했다. 
 
 
 <br><br>
-> <img src="/images/Route53.PNG" width="70%" height="70%" title="Route53" alt="Route53"></img>   
+> <img src="/images/Route53.PNG" width="90%" height="90%" title="Route53" alt="Route53"></img>   
 
 freenom 자체 DNS nameserver를 이용하지 않고, 도메인 등록, DNS 라우팅, 상태 확인 기능을 사용하기 위해 AWS의 Route53을 활용했다.
 
@@ -157,7 +157,7 @@ freenom 자체 DNS nameserver를 이용하지 않고, 도메인 등록, DNS 라�
 AWS의 ELB는 간편하지만, 비용적 측면에서 볼 때, 토이 프로젝트에는 Nginx가 제격이라 생각함. <br>
 규모가 커진다면 ELB를 활용해볼 것임. <br>
 
-> <img src="/images/nginx_1.PNG" width="80%" height="80%" title="nginx_1" alt="nginx_1"></img>   
+> <img src="/images/nginx_1.PNG" width="100%" height="100%" title="nginx_1" alt="nginx_1"></img>   
 
 Nginx 모듈을 설치한 모습.
 
@@ -166,7 +166,7 @@ Nginx 모듈을 설치한 모습.
 내부 모습이다.
 
 <br><br>
-> <img src="/images/nginx_root.PNG" width="50%" height="50%" title="nginx_root" alt="nginx_root"></img>   
+> <img src="/images/nginx_root.PNG" width="60%" height="60%" title="nginx_root" alt="nginx_root"></img>   
 
 
     /etc/nginx/sites-available
@@ -176,7 +176,7 @@ Nginx 모듈을 설치한 모습.
 <br><br>
 - Certbot 무료인증서 발급 및 https SSL 적용   
 
-> <img src="/images/certbot.PNG" width="80%" height="80%" title="certbot" alt="certbot"></img>   
+> <img src="/images/certbot.PNG" width="100%" height="100%" title="certbot" alt="certbot"></img>   
 
 Certbot을 통해 무료인증서를 발급함. 
 
@@ -184,13 +184,13 @@ Certbot을 통해 무료인증서를 발급함.
 내에 인증 관련 키 파일들을 볼 수 있다.
 
 <br><br>
-> <img src="/images/nginx_protocol.PNG" width="50%" height="50%" title="nginx_protocol" alt="nginx_protocol"></img>   
+> <img src="/images/nginx_protocol.PNG" width="70%" height="70%" title="nginx_protocol" alt="nginx_protocol"></img>   
 
 
 ssl 프로토콜 설정.
 
 <br><br>
-> <img src="/images/nginx_SSL.PNG" width="70%" height="70%" title="nginx_SSL" alt="nginx_SSL"></img>   
+> <img src="/images/nginx_SSL.PNG" width="85%" height="85%" title="nginx_SSL" alt="nginx_SSL"></img>   
 
 발급 받은 인증서 적용.
 
@@ -198,13 +198,13 @@ ssl 프로토콜 설정.
 <br><br>
 - Facebook Oauth 사용 -> 리디렉션 URL (https 요구) 설정   
 
-> <img src="/images/facebook_설정1.PNG" width="70%" height="70%" title="facebook_설정1" alt="facebook_설정1"></img>   
+> <img src="/images/facebook_설정1.PNG" width="85%" height="85%" title="facebook_설정1" alt="facebook_설정1"></img>   
 
 사용자 인증 과정 중 페이스북 Oauth를 활용 하기 때문에 https://developers.facebook.com/ 에서 내 앱을 만들어 주었다. 
 
 <br>
 
-> <img src="/images/facebook_설정2.PNG" width="70%" height="70%" title="facebook_설정2" alt="facebook_설정2"></img>   
+> <img src="/images/facebook_설정2.PNG" width="85%" height="85%" title="facebook_설정2" alt="facebook_설정2"></img>   
 
 앱 도메인과 리디렉션 URI를 내 도메인으로 설정해줌.
 
@@ -223,23 +223,23 @@ https://nodejs.org/ko/download/
 
 - app.js 내 facebook auth 위한 설정   
 
-> <img src="/images/config2.PNG" width="70%" height="70%" title="config2" alt="config2"></img>   
+> <img src="/images/config2.PNG" width="60%" height="60%" title="config2" alt="config2"></img>   
 내 앱의 ID와 시크릿코드, 콜백으로 넘겨받을 URL을 설정 해준다.
 
 - chating.html 내 socket.io 모듈 활용    
 
-> <img src="/images/chatting.PNG" width="70%" height="70%" title="chatting" alt="chatting"></img>   
+> <img src="/images/chatting.PNG" width="40%" height="40%" title="chatting" alt="chatting"></img>   
 내 웹서버 주소 혹은 localhost:PORT를 설정 해준다.
 
 ### 3-2. MongoDB - (config.js, app.js)
 - config/config.js 내 설정  
 
-> <img src="/images/config1.PNG" width="70%" height="70%" title="config1" alt="config1"></img>    
+> <img src="/images/config1.PNG" width="50%" height="50%" title="config1" alt="config1"></img>    
 내 DB 접속 url 입력
 
 - config/config.js 내 설정   
 
-> <img src="/images/app_session.PNG" width="70%" height="70%" title="app_session" alt="app_session"></img>   
+> <img src="/images/app_session.PNG" width="60%" height="60%" title="app_session" alt="app_session"></img>   
 세션 저장할 DB url 입력
 
 ### 3-3. 참고한 자료
