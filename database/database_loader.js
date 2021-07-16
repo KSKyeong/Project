@@ -19,7 +19,7 @@ function connect(app, config) {
 	database.db = mongoose.connection;
 	
 	database.db.on('open', function() {
-		console.log('데이터베이스에 연결되었습니다. : ' + config.db_url);
+		console.log('데이터베이스에 연결되었습니다. : ' );
 		
 		// 연결이 되었다면 정의해둔 스키마 속성에 따라 객체를 만든다.
 		createSchema(app, config);

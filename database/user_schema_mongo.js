@@ -16,6 +16,9 @@ Schema.createSchema = function (mongoose) {
         ,updated_at: {type:Date, index:{unique:false}, 'default':Date.now}
         ,provider : {type:String, 'default': ' '}
         ,authToken : {type:String, 'default': ' '}
+		
+		,googleToken : {type: String, 'default': null }
+		,googleRefreshToken : {type: String, 'default': ' ' }
         ,facebook : { }
         ,friends : {type: mongoose.Schema.ObjectId, ref: 'users'},
 	});
@@ -79,6 +82,43 @@ Schema.createSchema = function (mongoose) {
         console.log('saveMemo 호출됨.');
       
         return this.updateMany({'id':id}, {$set : {name:name, age:age}}, callback);
+
+    })
+
+	// 받은 토큰 저장 (초기)
+    UserSchema.static('initToken', function(id, token, callback) {
+        console.log('initToken 호출됨.');
+		console.log(token);
+		
+		// 토큰 json 자체 다 문자열로 일단 저장
+		// var access = (token.access_token != undefined && token.access_token != null) ? token.access_token : "";   
+		// var refresh = (token.refresh_token != undefined && token.refresh_token != null) ? token.refresh_token : "";   
+      
+		if(token.refresh_token != undefined && token.refresh_token != null) {
+			console.log("안녕");
+			console.log(JSON.stringify(token), token);
+			return this.updateMany({'email':id}, {$set : {googleToken: JSON.stringify(token), googleRefreshToken: token.refresh_token}}, callback);
+		} else {
+			console.log(" 초기 인증");
+			console.log(JSON.stringify(token), token);
+			return this.updateMany({'email':id}, {$set : {googleToken: JSON.stringify(token)}}, callback);
+		}
+
+		// return this.updateMany({'email':id}, {$set : {googleToken: JSON.stringify(token)}}, callback);
+        
+
+    })
+
+	// 저장된 토큰 불러오기
+	UserSchema.static('test', function(id, callback) {
+        console.log('test 호출됨.');
+
+		// findOne({user_id: user_id}, {requests:0})
+		
+		return this.findOne({'email':id}, {googleToken:1, googleRefreshToken:1}, callback);
+		
+		// return this.updateMany({'email':id}, {$set : {googleToken: JSON.stringify(token)}}, callback);
+        
 
     })
     

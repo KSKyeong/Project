@@ -1,4 +1,4 @@
-var showfriends = function (req, res) {
+const showfriends = function (req, res) {
     console.log('friend 모듈 안에 있는 showfriends 호출됨.');
 
     // URL 파라미터로 전달됨
@@ -146,7 +146,7 @@ var showfriends = function (req, res) {
     }
 };
 
-var myfriends = function (req, res) {
+const myfriends = function (req, res) {
     console.log('friend 모듈 안에 있는 myfriends 호출됨.');
 
     // 사용자 인증된 상태일 때 조회 권한
@@ -229,7 +229,7 @@ var myfriends = function (req, res) {
     }
 };
 
-var showprofile = function (req, res) {
+const showprofile = function (req, res) {
     var paramId = req.body.id || req.query.id || req.params.id;
     console.log('/profile/' + paramId + ' 패스 요청됨.');
 
@@ -324,7 +324,7 @@ var showprofile = function (req, res) {
 };
 
 // req_friend/:name 으로 받아서
-var req_friend = function (req, res) {
+const req_friend = function (req, res) {
     var paramName = req.body.name || req.query.name || req.params.name;
 
     console.log('/req_friend/' + paramName + ' 패스 요청됨.');
@@ -408,7 +408,7 @@ var req_friend = function (req, res) {
 }
 
 // friendrequest post 방식
-var friendrequest = function (req, res) {
+const friendrequest = function (req, res) {
     console.log('friendrequest 함수 호출됨');
     // 요청한 친구의 고유 아이디 값 Obj_id
     var request_id = req.body.request_id || req.query.request_id || req.params.request_id;
@@ -508,7 +508,7 @@ var friendrequest = function (req, res) {
 
 }
 
-var deletefriend = function (req, res) {
+const deletefriend = function (req, res) {
     console.log('deletefriend 함수 호출됨');
     // 친구 삭제 요청한 친구의 고유 아이디 값 Obj_id
     var delete_id = req.body.delete_id || req.query.delete_id || req.params.delete_id;

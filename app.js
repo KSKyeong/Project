@@ -55,6 +55,7 @@ var socketio = require('socket.io')(server);
 var cors = require('cors');
 
 var sharedsession = require("express-socket.io-session");
+const { oauth2Client, authUrl } = require('./testApi');
 
 var sessionMiddleware = expressSession({
     name: "User_cookie",
@@ -63,7 +64,7 @@ var sessionMiddleware = expressSession({
     saveUninitialized: true,
     store: new (require("connect-mongo")(expressSession))({
         /*url: "mongodb://localhost:27017/local"*/
-        url: "YOUR_URL"
+        url: "mongodb+srv://KSKyeong:p!ngu119@cluster0.cozuo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
     })
 });
 
@@ -135,6 +136,7 @@ var server = http.createServer(app).listen(app.get('port'), function() {
 	console.log('서버가 시작되었습니다. 포트 : ' + app.get('port'));
 	// 데이터 베이스 연결
 	database_loader.init(app, config);
+    authUrl().then((res) => console.log(res));
 	
 	// database의 초기화가 다 된 후에 app 객체에 db 속성으로 database 객체를 넣어준다. ->  ./routes/user_mongo.js 모듈 파일에서 database 객체를 참조하기 위해. (순서 주의)
 

@@ -1,6 +1,6 @@
 module.exports = {
-	server_port : 3701,
-	db_url : "YOUR_URL",
+	server_port : 8080,
+	db_url : "mongodb+srv://KSKyeong:p!ngu119@cluster0.cozuo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
 	db_schemas : [
 		{file: './user_schema_mongo', collection: 'users', schemaName: 'UserSchema', modelName: 'UserModel'}
         ,{file: './post_schema_mongo', collection: 'post', schemaName: 'PostSchema', modelName: 'PostModel'}
@@ -8,7 +8,9 @@ module.exports = {
         ,{file: './room_schema_mongo', collection: 'rooms', schemaName: 'RoomSchema', modelName: 'RoomModel'}
 	],
 	route_info : [
-        {file : './post', path : '/process/addpost', method : 'addpost', type : 'post'}
+        {file : './google', path : '/oauth2callback', method : 'setToken', type : 'get'}
+        ,{file : './google', path : '/api/list/:id', method : 'test', type : 'get'}
+        ,{file : './post', path : '/process/addpost', method : 'addpost', type : 'post'}
         ,{file : './post', path : '/process/deletepost', method : 'deletepost', type : 'post'}
         ,{file : './post', path : '/process/showpost/:id', method : 'showpost', type : 'get'}
         ,{file : './post', path : '/process/listpost', method : 'listpost', type : 'post'}
